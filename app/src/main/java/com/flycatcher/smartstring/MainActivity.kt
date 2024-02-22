@@ -1,12 +1,11 @@
 package com.flycatcher.smartstring
 
-import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Picture
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.flycatcher.smartstringart.R
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.flycatcher.smartstringart.databinding.ActivityMainBinding
 import java.io.IOException
 import java.io.InputStream
@@ -15,19 +14,21 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var jniBridge: JniBridge
+    private val viewModel: MainActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         jniBridge = JniBridge()
-        binding.mainText.text = jniBridge.showText("Hello Jni")
+        //binding.mainText.text = jniBridge.showText("Hello Jni")
 
-        binding.preview.setImageBitmap(getPicture(AssetPicture.SMILE_GIRL))
-
+        viewModel.currentPicture.observe(this, this::updatePictureInfo)
+        binding.btnPrevPicture.setOnClickListener(viewModel::setPrevPicture)
+        binding.btnNextPicture.setOnClickListener(viewModel::setNextPicture)
     }
 
-    fun getPicture(picture: AssetPicture): Bitmap {
+    private fun getPicture(picture: AssetPicture): Bitmap {
         var bitmap: Bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
         var inputStream: InputStream? = null
         try {
@@ -39,6 +40,11 @@ class MainActivity : AppCompatActivity() {
             inputStream?.close()
         }
         return bitmap
+    }
+
+    private fun updatePictureInfo(picture: AssetPicture) {
+        binding.tvPictureName.text = picture.filename
+        binding.preview.setImageBitmap(getPicture(picture))
     }
 
 }

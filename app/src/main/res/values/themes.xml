@@ -3,11 +3,22 @@
     <style name="Base.Theme.SmartStringArt" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/grey_300</item>
         <item name="bgColor">@color/grey_100</item>
         <item name="bgColor2">@color/grey_300</item>
         <item name="textColor">@color/grey_600</item>
+        <item name="android:colorAccent">@color/blue</item>
     </style>
 
     <style name="Theme.SmartString" parent="Base.Theme.SmartStringArt" />
+
+    <style name="TextView" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">?attr/textColor</item>
+        <item name="android:textSize">@dimen/text_l</item>
+    </style>
+
+    <style name="TextView.Title" parent="TextView">
+        <item name="android:textSize">@dimen/text_xl</item>
+    </style>
 
 </resources>

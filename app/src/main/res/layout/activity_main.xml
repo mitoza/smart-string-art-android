@@ -9,13 +9,65 @@
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/main_text"
+        style="@style/TextView.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toTopOf="@+id/preview"
+        android:layout_marginTop="@dimen/m8"
+        android:text="@string/app_name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btn_prev_picture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/m16"
+        android:background="@drawable/im_button_flat"
+        android:padding="@dimen/m4"
+        android:src="@drawable/ic_arrow_left_24"
+        android:tint="?attr/bgColor"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/main_text" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btn_next_picture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/m16"
+        android:background="@drawable/im_button_flat"
+        android:padding="@dimen/m4"
+        android:src="@drawable/ic_arrow_right_24"
+        android:tint="?attr/bgColor"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_prev_picture"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btn_prev_picture" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tv_picture_name"
+        style="@style/TextView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="@dimen/m4"
+        android:layout_marginEnd="@dimen/m4"
+        android:gravity="center"
+        android:text="Some simple name of picture"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_prev_picture"
+        app:layout_constraintEnd_toStartOf="@+id/btn_next_picture"
+        app:layout_constraintStart_toEndOf="@+id/btn_prev_picture"
+        app:layout_constraintTop_toTopOf="@+id/btn_prev_picture" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_make_it"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/make_it"
+        android:backgroundTint="@color/yellow"
+        android:textColor="@color/grey_600"
+        app:layout_constraintTop_toBottomOf="@+id/btn_prev_picture"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/preview"
@@ -23,10 +75,16 @@
         android:layout_height="0dp"
         android:layout_margin="@dimen/m16"
         android:background="?attr/bgColor2"
-        app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintStart_toEndOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        />
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="parent" />
+
+<!--    <androidx.appcompat.widget.AppCompatSeekBar-->
+<!--        android:id="@+id/seekBar"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent" />-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -13,5 +13,14 @@ enum class AssetPicture(val filename: String) {
     PHILIPINE_EAGLE("PhillipineEagle.jpg"),
     PROJECTOR("SmartSketcherProjector.png"),
     SHORT_HAIR("ShortHair.jpg"),
-    UNNAMED_STAR("UnnamedStar.jpg"),
+    UNNAMED_STAR("UnnamedStar.jpg");
+
+    fun next(): AssetPicture {
+        return if (ordinal >= entries.size - 1) entries[0] else entries[ordinal+1]
+    }
+
+    fun prev(): AssetPicture {
+        return if (ordinal == 0) entries[entries.size - 1] else entries[ordinal-1]
+    }
+
 }

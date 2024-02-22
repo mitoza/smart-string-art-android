@@ -23,6 +23,7 @@ using namespace cv;
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_flycatcher_smartstring_JniBridge_showText
 (JNIEnv *env, jobject thiz, jstring text) {
-
     return text;
 }
+
+
