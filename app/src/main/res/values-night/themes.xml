@@ -3,5 +3,8 @@
     <style name="Base.Theme.SmartStringArt" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="bgColor">@color/grey_300</item>
+        <item name="bgColor2">@color/grey_500</item>
+        <item name="textColor">@color/white</item>
     </style>
 </resources>
