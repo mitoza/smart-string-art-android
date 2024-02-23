@@ -9,12 +9,20 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 /*
  * Class:     Java_com_flycatcher_smartstring_JniBridge
  * Method:    showText
  */
 JNIEXPORT jstring JNICALL Java_com_flycatcher_smartstring_JniBridge_showText
         (JNIEnv *, jobject thiz, jstring text);
+
+/*
+ * Class:     Java_com_flycatcher_smartstring_JniBridge
+ * Method:    greyImage
+ */
+JNIEXPORT void JNICALL Java_com_flycatcher_smartstring_JniBridge_greyImage
+        (JNIEnv *, jobject, jint, jint, jintArray, jintArray);
 
 
 #ifdef __cplusplus

@@ -8,7 +8,7 @@
     tools:context="com.flycatcher.smartstring.MainActivity">
 
     <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/main_text"
+        android:id="@+id/main_title"
         style="@style/TextView.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -23,12 +23,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/m16"
+        android:layout_marginBottom="@dimen/m16"
         android:background="@drawable/im_button_flat"
         android:padding="@dimen/m4"
         android:src="@drawable/ic_arrow_left_24"
         android:tint="?attr/bgColor"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/main_text" />
+        app:layout_constraintBottom_toBottomOf="parent" />
 
     <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/btn_next_picture"
@@ -51,7 +52,7 @@
         android:layout_marginStart="@dimen/m4"
         android:layout_marginEnd="@dimen/m4"
         android:gravity="center"
-        android:text="Some simple name of picture"
+        tools:text="Some simple name of picture"
         app:layout_constraintBottom_toBottomOf="@+id/btn_prev_picture"
         app:layout_constraintEnd_toStartOf="@+id/btn_next_picture"
         app:layout_constraintStart_toEndOf="@+id/btn_prev_picture"
@@ -64,7 +65,7 @@
         android:text="@string/make_it"
         android:backgroundTint="@color/yellow"
         android:textColor="@color/grey_600"
-        app:layout_constraintTop_toBottomOf="@+id/btn_prev_picture"
+        app:layout_constraintBottom_toTopOf="@+id/btn_prev_picture"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         />
@@ -75,7 +76,7 @@
         android:layout_height="0dp"
         android:layout_margin="@dimen/m16"
         android:background="?attr/bgColor2"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/main_title"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="parent" />
