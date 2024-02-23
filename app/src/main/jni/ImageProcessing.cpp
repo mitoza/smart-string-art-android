@@ -7,9 +7,10 @@
 //
 
 #include "com_flycatcher_smartstring_JniBridge.h"
-#include "StringsGenerator.h"
+#include "StringArtGenerator.h"
 
-//#include <jni.h>
+using namespace std;
+using namespace cv;
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_flycatcher_smartstring_JniBridge_showText
@@ -29,15 +30,10 @@ Java_com_flycatcher_smartstring_JniBridge_greyImage
     Mat result(height, width, CV_8UC4, (unsigned char *) pOutPixels);
 
     // Filter
-    Mat grey;
-    line(src,Point(0,0),Point(width,height/2),(255,0,0),1);
-
-    cvtColor(src, grey, COLOR_RGB2GRAY);
-    cvtColor(grey, result, COLOR_GRAY2RGBA);
-
+    FlyCatcher::StringArtGenerator generator = FlyCatcher::StringArtGenerator();
+    generator.generateCircle(src, 288).copyTo(result);
 
     // Release resources
-    if (!grey.empty()) grey.release();
 
     if (pPixelsIn != NULL) {
         env->ReleaseIntArrayElements(pixelsIn, pPixelsIn, JNI_ABORT);

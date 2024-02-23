@@ -7,9 +7,6 @@
 //#include <OpenCV-4.9.0-android-sdk/sdk/native/jni/include/opencv2/imgcodecs/imgcodecs.hpp>
 //#include <OpenCV-4.9.0-android-sdk/sdk/native/jni/include/opencv2/imgproc/types_c.h>
 
-using namespace std;
-using namespace cv;
-
 #ifndef _Included_com_flycatcher_smartstring_util_JniBridge
 #define _Included_com_flycatcher_smartstring_util_JniBridge
 #ifdef __cplusplus

@@ -8,6 +8,7 @@ enum class AssetPicture(val filename: String) {
     GREEK_WOMAN_CROPPED("GreekWomanCropped.jpg"),
     ICON_GIFT("IconGift.png"),
     ICON_ROCKET("IconRocket.png"),
+    MONA_LISA("MonaLisa.jpg"),
     MORENA_BACCARIN("MorenaBaccarin.jpg"),
     KID_DRAWING("KidDrawing.png"),
     PHILIPINE_EAGLE("PhillipineEagle.jpg"),
