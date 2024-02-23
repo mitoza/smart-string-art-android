@@ -3,18 +3,11 @@
 //  smArt StringArt
 //
 //  Created by Dmitry on 21/02/24.
-//  Copyright © 2024 FlyCatcher. All rights reserved.
+//  Copyright © 2024 Flycatcher Corporation Ltd. All rights reserved.
 //
 
 #include "com_flycatcher_smartstring_JniBridge.h"
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgcodecs/imgcodecs.hpp>
-#include <opencv2/imgproc/types_c.h>
-
-using namespace std;
-using namespace cv;
+#include "StringsGenerator.h"
 
 //#include <jni.h>
 
@@ -37,6 +30,8 @@ Java_com_flycatcher_smartstring_JniBridge_greyImage
 
     // Filter
     Mat grey;
+    line(src,Point(0,0),Point(width,height/2),(255,0,0),1);
+
     cvtColor(src, grey, COLOR_RGB2GRAY);
     cvtColor(grey, result, COLOR_GRAY2RGBA);
 

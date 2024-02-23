@@ -37,10 +37,7 @@ class MainActivityViewModel(
 
     fun generatePicture(v: View) {
         if (currentBitmap.value == null) return
-        currentBitmap.value = jniBridge.greyImage(currentBitmap.value!!)
-//        setBitmap(jniBridge.makeBitmap(currentBitmap.value!!))
-
-
+        setBitmap(jniBridge.greyImage(currentBitmap.value!!))
     }
 
 

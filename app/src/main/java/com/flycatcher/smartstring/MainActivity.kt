@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateBitmap(bitmap: Bitmap) {
-        binding.preview.setImageBitmap(bitmap)
+        binding.mainPreview.setImageBitmap(bitmap)
     }
 
 }
