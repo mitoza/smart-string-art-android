@@ -30,8 +30,7 @@ Java_com_flycatcher_smartstring_JniBridge_greyImage
     Mat result(height, width, CV_8UC4, (unsigned char *) pOutPixels);
 
     // Filter
-    FlyCatcher::StringArtGenerator generator = FlyCatcher::StringArtGenerator();
-    generator.generateCircle(src, 288).copyTo(result);
+    FlyCatcher::StringArtGenerator().generateCircle(src, 10, 2).copyTo(result);
 
     // Release resources
 
