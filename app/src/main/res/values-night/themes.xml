@@ -7,6 +7,7 @@
         <item name="bgColor">@color/grey_300</item>
         <item name="bgColor2">@color/grey_500</item>
         <item name="textColor">@color/white</item>
+        <item name="textColor2">@color/grey_200</item>
         <item name="android:colorAccent">@color/blue</item>
     </style>
 </resources>

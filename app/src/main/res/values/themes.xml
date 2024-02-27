@@ -7,6 +7,7 @@
         <item name="bgColor">@color/grey_100</item>
         <item name="bgColor2">@color/grey_300</item>
         <item name="textColor">@color/grey_600</item>
+        <item name="textColor2">@color/grey_300</item>
         <item name="android:colorAccent">@color/blue</item>
     </style>
 
@@ -19,6 +20,27 @@
 
     <style name="TextView.Title" parent="TextView">
         <item name="android:textSize">@dimen/text_xl</item>
+    </style>
+
+    <style name="TextView.Title.Bold" parent="TextView">
+        <item name="android:textSize">@dimen/text_xl</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextView.Bold" parent="TextView">
+        <item name="android:textSize">@dimen/text_m</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextView.Regular" parent="TextView">
+        <item name="android:textSize">@dimen/text_m</item>
+    </style>
+
+    <style name="SeekBar">
+        <item name="android:progressBackgroundTint">?attr/bgColor2</item>
+        <item name="android:progressTint">@color/blue</item>
+        <item name="android:thumbTint">@color/blue</item>
+        <item name="android:tickMark">?attr/textColor</item>
     </style>
 
 </resources>

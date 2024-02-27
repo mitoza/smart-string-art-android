@@ -11,6 +11,7 @@
 
 using namespace std;
 using namespace cv;
+using namespace fc;
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_flycatcher_smartstring_JniBridge_showText
@@ -30,7 +31,9 @@ Java_com_flycatcher_smartstring_JniBridge_greyImage
     Mat result(height, width, CV_8UC4, (unsigned char *) pOutPixels);
 
     // Filter
-    FlyCatcher::StringArtGenerator().generateCircle(src, 10, 2).copyTo(result);
+    StringArtGenerator gen = StringArtGenerator();
+    gen.generateCircle(src, 10, 2, 50).copyTo(result);
+
 
     // Release resources
 

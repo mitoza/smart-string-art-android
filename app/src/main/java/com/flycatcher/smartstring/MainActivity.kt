@@ -23,9 +23,9 @@ class MainActivity : AppCompatActivity() {
         viewModel.getCurrentPictureLiveData().observe(this, this::updatePictureInfo)
         viewModel.getCurrentBitmapLiveData().observe(this, this::updateBitmap)
 
-        binding.btnPrevPicture.setOnClickListener(viewModel::setPrevPicture)
-        binding.btnNextPicture.setOnClickListener(viewModel::setNextPicture)
-        binding.btnMakeIt.setOnClickListener(viewModel::generatePicture)
+        binding.cImage.btnPrevPicture.setOnClickListener(viewModel::setPrevPicture)
+        binding.cImage.btnNextPicture.setOnClickListener(viewModel::setNextPicture)
+        binding.cGen.btnMakeIt.setOnClickListener(viewModel::generatePicture)
     }
 
     private fun getPicture(picture: AssetPicture): Bitmap {
@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePictureInfo(picture: AssetPicture) {
-        binding.tvPictureName.text = picture.filename
+        binding.cImage!!.tvPictureName.text = picture.filename
         viewModel.setBitmap(getPicture(picture))
     }
 

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <View
+        android:id="@+id/v_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/bgColor2"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btn_prev_picture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/m16"
+        android:layout_marginTop="@dimen/m8"
+        android:background="@drawable/im_button_flat"
+        android:padding="@dimen/m4"
+        android:src="@drawable/ic_arrow_left_24"
+        android:tint="?attr/bgColor"
+        app:layout_constraintTop_toBottomOf="@+id/v_divider"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btn_next_picture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/m16"
+        android:background="@drawable/im_button_flat"
+        android:padding="@dimen/m4"
+        android:src="@drawable/ic_arrow_right_24"
+        android:tint="?attr/bgColor"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_prev_picture"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btn_prev_picture" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tv_picture_name"
+        style="@style/TextView"
+        tools:text="Some simple name of picture"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="@dimen/m4"
+        android:layout_marginEnd="@dimen/m4"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_prev_picture"
+        app:layout_constraintEnd_toStartOf="@+id/btn_next_picture"
+        app:layout_constraintStart_toEndOf="@+id/btn_prev_picture"
+        app:layout_constraintTop_toTopOf="@+id/btn_prev_picture" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

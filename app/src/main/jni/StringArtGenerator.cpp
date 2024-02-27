@@ -10,13 +10,13 @@
 
 using namespace cv;
 
-namespace FlyCatcher {
+namespace fc {
 
     StringArtGenerator::StringArtGenerator() {
 
     }
 
-    Mat StringArtGenerator::generateCircle(const Mat src, int sizeOfPins, int minDistance) {
+    Mat StringArtGenerator::generateCircle(const Mat src, int sizeOfPins, int minDistance, int maxLines) {
         /* Image preparation */
         Mat bsrc = Mat(src.size(), CV_8UC1);
 
@@ -36,9 +36,9 @@ namespace FlyCatcher {
         int kernelSize2 = 9;
         GaussianBlur(bsrc, bsrc, cv::Size(kernelSize2, kernelSize2), 0.0);
 
-
         // Circle crop
         circleCrop(bsrc, bsrc);
+        log(format("Image size: %dx%d", bsrc.cols, bsrc.rows));
 
         /* Find the lines */
 
@@ -54,7 +54,8 @@ namespace FlyCatcher {
         precalculateLines(bsrc, sizeOfPins, minDistance, pins, preLines);
         log(format("Lines time: %ldns", (currentTimeInNanos() - linesTime)));
 
-        // In Loop search the best line with most darkest color from one nail to other
+        // In Loop search the best line with most darkest color from one pin to other
+        calculateLines(bsrc, sizeOfPins, minDistance, maxLines, pins, preLines);
 
         /* Result */
         Mat result;
@@ -128,15 +129,15 @@ namespace FlyCatcher {
                 if (distance != 1) {
                     deltaX = (p1.x - p0.x) / (distance - 1.0);
                     deltaY = (p1.y - p0.y) / (distance - 1.0);
-                    for (int k = 0; k < distance - 1; ++k) {
+                    for (int k = 0; k < distance - 1; k = k + 1) {
                         Point linePoint = Point((int) (p0.x + deltaX * k),
                                                 (int) (p0.y + deltaY * k));
                         lines[first].points.push_back(linePoint);
                         if (first != second) {
                             lines[second].points.push_back(linePoint);
                         }
-                        if (i == 0) {
-                            circle(src, linePoint, 1, 255, -1);
+                        if (i == 7) {
+                            circle(src, linePoint, 5, 255, -1);
                         }
                     }
                     // Ensure that the last point of line is p1
@@ -159,6 +160,43 @@ namespace FlyCatcher {
             }
 
         }
+
+    }
+
+    void StringArtGenerator::calculateLines(
+            const cv::Mat &src, int sizeOfPins, int minDistance, int maxLines,
+            cv::Point *pins, Line *lines) {
+        std::vector<int> lastPins;
+        int currentPin = 0;
+        int bestPin = -1;
+        int lineError = 0;
+        int maxError = 0;
+        int index = 0;
+        int innerIndex = 0;
+
+//        for(int i=0; i<maxLines; i++) {
+//
+//            for(int offset = minDistance; offset < sizeOfPins - minDistance; offset++) {
+//                int testPin = (currentPin + offset) % sizeOfPins;
+//
+//                // Check if lastPins contains testPin
+//                if (std::find(lastPins.begin(), lastPins.end(), testPin) != lastPins.end()) {
+//                    continue;
+//                }
+//
+//                innerIndex = testPin * sizeOfPins + currentPin;
+//
+//                // Calculate line error
+//                lineError = 0;
+                log(format("Line[%d]: %d", innerIndex, lines[innerIndex].points.size()));
+                for(auto ptr=lines[innerIndex].points.begin(); ptr < lines[innerIndex].points.end(); ptr++) {
+                    log(format("Line[%d]: %d, %d", innerIndex, ptr->x, ptr->y));
+                    //lineError += src.at<uchar>(ptr->x, ptr->y)
+                }
+//
+//            }
+//
+//        }
 
 
     }

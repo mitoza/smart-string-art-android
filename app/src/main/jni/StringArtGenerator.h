@@ -9,6 +9,8 @@
 #include "OpenCV-4.9.0-android-sdk/sdk/native/jni/include/opencv2/core/core.hpp"
 #include "OpenCV-4.9.0-android-sdk/sdk/native/jni/include/opencv2/imgproc/imgproc.hpp"
 #include <android/log.h>
+#include <iterator> // for iterators
+#include <vector> // for vectors
 
 #ifndef STRINGARTGENERATOR_H
 #define STRINGARTGENERATOR_H
@@ -17,7 +19,7 @@
 
 using namespace cv;
 
-namespace FlyCatcher {
+namespace fc {
 
     struct Line {
         int startPin, endPin;
@@ -40,27 +42,31 @@ namespace FlyCatcher {
     public:
         StringArtGenerator();
 
-        static Mat generateCircle(const Mat src, int sizeOfPins, int minDistance);
+        Mat generateCircle(const Mat src, int sizeOfPins, int minDistance, int maxLines);
 
-        static void sobelFilter(const Mat &src_gray, Mat &dst);
-        static void circleCrop(const Mat &src, Mat &dst);
+        void sobelFilter(const Mat &src_gray, Mat &dst);
+        void circleCrop(const Mat &src, Mat &dst);
 
-        static void fillCircleOfPins(const Mat &src, int sizeOfPins, Point *pins);
-        static void precalculateLines(const Mat &src, int sizeOfPins, int minDistance, Point *pins, Line *lines);
+        void fillCircleOfPins(const Mat &src, int sizeOfPins, Point *pins);
 
         // Bresenham Path
+        void precalculateLines(const Mat &src, int sizeOfPins, int minDistance, Point *pins, Line *lines);
+        void calculateLines(const Mat &src, int sizeOfPins, int minDistance, int maxLines,
+                                   Point *pins, Line *lines);
+
+
         // Choose Darkest Path
         //
     private:
-        static void log(String msg) {
+        void log(String msg) {
             log(msg.c_str());
         };
 
-        static void log(const char *fmt...) {
+        void log(const char *fmt...) {
           __android_log_print(ANDROID_LOG_VERBOSE, APP_NAME, "%s", fmt);
         };
 
-        static long currentTimeInNanos() {
+        long currentTimeInNanos() {
             struct timespec res;
             clock_gettime(CLOCK_MONOTONIC, &res);
             return (res.tv_sec * 1000000000) + res.tv_nsec;
