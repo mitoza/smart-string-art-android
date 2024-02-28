@@ -1,6 +1,10 @@
 package com.flycatcher.smartstring
 
 import android.graphics.Bitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 
 class JniBridge() {
 
@@ -11,12 +15,20 @@ class JniBridge() {
         pixelsOut: IntArray
         )
 
-    fun greyImage(bitmap: Bitmap): Bitmap {
+    fun greyImageRegular(bitmap: Bitmap): Bitmap {
         val outPixels = IntArray(bitmap.width * bitmap.height)
         greyImage(bitmap.width, bitmap.height, bitmap.toIntArray(), outPixels)
         val newBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
         newBitmap.setPixels(outPixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
         return newBitmap
+    }
+
+    suspend fun greyImage(bitmap: Bitmap): Bitmap = withContext(Dispatchers.IO) {
+        val outPixels = IntArray(bitmap.width * bitmap.height)
+        greyImage(bitmap.width, bitmap.height, bitmap.toIntArray(), outPixels)
+        val newBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        newBitmap.setPixels(outPixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        newBitmap
     }
 
     init {

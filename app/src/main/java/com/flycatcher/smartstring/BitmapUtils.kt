@@ -1,7 +1,6 @@
 package com.flycatcher.smartstring
 
 import android.graphics.Bitmap
-import java.io.ByteArrayOutputStream
 
 fun Bitmap.toIntArray(): IntArray {
     val argb = IntArray(width * height)

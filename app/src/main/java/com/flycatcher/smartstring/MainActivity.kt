@@ -3,10 +3,14 @@ package com.flycatcher.smartstring
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.flycatcher.smartstringart.databinding.ActivityMainBinding
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.collect
 import java.io.IOException
 import java.io.InputStream
 
@@ -20,12 +24,21 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel.getCurrentPictureLiveData().observe(this, this::updatePictureInfo)
-        viewModel.getCurrentBitmapLiveData().observe(this, this::updateBitmap)
+        lifecycleScope.launch {
+            viewModel.bitmapFlow.collect { bitmap ->
+                updateBitmap(bitmap)
+            }
+        }
+        lifecycleScope.launch {
+            viewModel.currentPicture.collect { picture ->
+                updatePictureInfo(picture)
+            }
+        }
 
-        binding.cImage.btnPrevPicture.setOnClickListener(viewModel::setPrevPicture)
-        binding.cImage.btnNextPicture.setOnClickListener(viewModel::setNextPicture)
-        binding.cGen.btnMakeIt.setOnClickListener(viewModel::generatePicture)
+        binding.cImage.btnPrevPicture.setOnClickListener(this::onPrevPictureClick)
+        binding.cImage.btnNextPicture.setOnClickListener(this::onNextPictureClick)
+        binding.cGen.btnMakeIt.setOnClickListener(this::onGeneratePictureClick)
+
     }
 
     private fun getPicture(picture: AssetPicture): Bitmap {
@@ -43,12 +56,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePictureInfo(picture: AssetPicture) {
-        binding.cImage!!.tvPictureName.text = picture.filename
+        binding.cImage.tvPictureName.text = picture.filename
         viewModel.setBitmap(getPicture(picture))
     }
 
-    private fun updateBitmap(bitmap: Bitmap) {
+    private fun updateBitmap(bitmap: Bitmap?) {
         binding.mainPreview.setImageBitmap(bitmap)
+    }
+
+    private fun onPrevPictureClick(v: View) {
+        viewModel.showPrevPicture()
+    }
+
+    private fun onNextPictureClick(v: View) {
+        viewModel.showNextPicture()
+    }
+
+    private fun onGeneratePictureClick(v: View) {
+        viewModel.generatePicture()
     }
 
 }

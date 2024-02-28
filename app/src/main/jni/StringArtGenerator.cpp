@@ -43,19 +43,21 @@ namespace fc {
         /* Find the lines */
 
         // Set pins
-        Point pins[sizeOfPins];
         long pinsTime = currentTimeInNanos();
-        fillCircleOfPins(bsrc, sizeOfPins, pins);
-        //log(format("Pins time: %ldns", (currentTimeInNanos() - pinsTime)));
+        std::vector<Point> pins;
+        fillPinsAsCircle(bsrc, sizeOfPins, pins);
+        log(format("Pins time: %ldns", (currentTimeInNanos() - pinsTime)));
+
+
 
         // Precalculate all potential Lines
-        Line preLines[sizeOfPins * sizeOfPins];
-        long linesTime = currentTimeInNanos();
-        precalculateLines(bsrc, sizeOfPins, minDistance, pins, preLines);
-        log(format("Lines time: %ldns", (currentTimeInNanos() - linesTime)));
-
-        // In Loop search the best line with most darkest color from one pin to other
-        calculateLines(bsrc, sizeOfPins, minDistance, maxLines, pins, preLines);
+//        long linesTime = currentTimeInNanos();
+        std::vector<std::vector<Point>> lines(sizeOfPins * sizeOfPins);
+        precalculateLines(bsrc, sizeOfPins, minDistance, pins, lines);
+//        log(format("Lines time: %ldns", (currentTimeInNanos() - linesTime)));
+//
+//        // In Loop search the best line with most darkest color from one pin to other
+//        calculateLines(bsrc, sizeOfPins, minDistance, maxLines, pins, preLines);
 
         /* Result */
         Mat result;
@@ -95,24 +97,26 @@ namespace fc {
         circleImage.release();
     }
 
-    void StringArtGenerator::fillCircleOfPins(const Mat &src, int sizeOfPins, Point *pins) {
+    void StringArtGenerator::fillPinsAsCircle(const Mat &src, int sizeOfPins,
+                                              std::vector<Point> &pins) {
         int nailRadius = 1;
         int center = min(src.rows, src.cols) / 2;
         int radius = center - 1;
         Vec3b nailColor = 128;
         double angle;
-
+        pins.clear();
         for (int i = 0; i < sizeOfPins; i++) {
             angle = 2 * CV_PI * i / sizeOfPins;
-            pins[i] = Point((int) (center + radius * cos(angle)),
+            Point pin = Point((int) (center + radius * cos(angle)),
                             (int) (center + radius * sin(angle)));
-            circle(src, pins[i], nailRadius, nailColor, -1);
-            log(format("Pin[%d]: %d, %d", i, pins[i].x, pins[i].y));
+            pins.push_back(pin);
+            circle(src, pin, nailRadius, nailColor, -1);
+            //log(format("Pin[%d]: %d, %d", i, pins[i].x, pins[i].y));
         }
     }
 
-    void StringArtGenerator::precalculateLines(
-            const Mat &src, int sizeOfPins, int minDistance, Point *pins, Line *lines) {
+    void StringArtGenerator::precalculateLines(const Mat &src, int sizeOfPins, int minDistance,
+            std::vector<Point> &pins, std::vector<std::vector<Point>> &lines) {
         int first, second, distance;
         double deltaX, deltaY;
         Point p0, p1;
@@ -132,31 +136,24 @@ namespace fc {
                     for (int k = 0; k < distance - 1; k = k + 1) {
                         Point linePoint = Point((int) (p0.x + deltaX * k),
                                                 (int) (p0.y + deltaY * k));
-                        lines[first].points.push_back(linePoint);
+                        lines[first].push_back(linePoint);
                         if (first != second) {
-                            lines[second].points.push_back(linePoint);
+                            lines[second].push_back(linePoint);
                         }
                         if (i == 7) {
                             circle(src, linePoint, 5, 255, -1);
                         }
                     }
                     // Ensure that the last point of line is p1
-                    lines[first].points.push_back(p1);
+                    lines[first].push_back(p1);
                     if (first != second) {
-                        lines[second].points.push_back(p1);
+                        lines[second].push_back(p1);
                     }
                 }
 
-                lines[first].distance = distance;
-                lines[first].startPin = i;
-                lines[first].endPin = j;
-                //log(format("Line[%d](%d, %d): %d", first, lines[first].startPin, lines[first].endPin, lines[first].distance));
-                if (first != second) {
-                    lines[second].distance = distance;
-                    lines[second].startPin = j;
-                    lines[second].endPin = i;
-                    //    log(format("Line[%d](%d, %d): %d", second, lines[second].startPin, lines[second].endPin, lines[second].distance));
-                }
+                log(format("Line[%d]: %d", first, lines[first].size()));
+                log(format("Line[%d]: %d", second, lines[second].size()));
+
             }
 
         }
@@ -165,7 +162,7 @@ namespace fc {
 
     void StringArtGenerator::calculateLines(
             const cv::Mat &src, int sizeOfPins, int minDistance, int maxLines,
-            cv::Point *pins, Line *lines) {
+            cv::Point *pins, std::vector<Point> *lines[]) {
         std::vector<int> lastPins;
         int currentPin = 0;
         int bestPin = -1;
@@ -188,11 +185,11 @@ namespace fc {
 //
 //                // Calculate line error
 //                lineError = 0;
-                log(format("Line[%d]: %d", innerIndex, lines[innerIndex].points.size()));
-                for(auto ptr=lines[innerIndex].points.begin(); ptr < lines[innerIndex].points.end(); ptr++) {
-                    log(format("Line[%d]: %d, %d", innerIndex, ptr->x, ptr->y));
-                    //lineError += src.at<uchar>(ptr->x, ptr->y)
-                }
+//                log(format("Line[%d]: %d", innerIndex, lines[innerIndex].points.size()));
+//                for(auto ptr=lines[innerIndex].points.begin(); ptr < lines[innerIndex].points.end(); ptr++) {
+//                    log(format("Line[%d]: %d, %d", innerIndex, ptr->x, ptr->y));
+//                    //lineError += src.at<uchar>(ptr->x, ptr->y)
+//                }
 //
 //            }
 //

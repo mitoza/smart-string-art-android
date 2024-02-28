@@ -21,12 +21,6 @@ using namespace cv;
 
 namespace fc {
 
-    struct Line {
-        int startPin, endPin;
-        int distance;
-        std::vector<Point> points;
-    };
-
     class StringArtGenerator {
 
     public:
@@ -35,9 +29,8 @@ namespace fc {
         // Seed
         // LineWeight
         // SkipNeighbors
-        const int MAX_LINES = 4000;
-        const int LINE_WEIGHT = 8;
-
+        static const int MAX_LINES = 4000;
+        static const int PINS_NUMBER = 288;
 
     public:
         StringArtGenerator();
@@ -47,17 +40,17 @@ namespace fc {
         void sobelFilter(const Mat &src_gray, Mat &dst);
         void circleCrop(const Mat &src, Mat &dst);
 
-        void fillCircleOfPins(const Mat &src, int sizeOfPins, Point *pins);
-
+        void fillPinsAsCircle(const Mat &src, int sizeOfPins, std::vector<Point> &pins);
         // Bresenham Path
-        void precalculateLines(const Mat &src, int sizeOfPins, int minDistance, Point *pins, Line *lines);
+        void precalculateLines(const Mat &src, int sizeOfPins, int minDistance,
+                               std::vector<Point> &pins, std::vector<std::vector<Point>> &lines);
         void calculateLines(const Mat &src, int sizeOfPins, int minDistance, int maxLines,
-                                   Point *pins, Line *lines);
-
+                                   Point *pins, std::vector<Point> *lines[]);
 
         // Choose Darkest Path
         //
     private:
+
         void log(String msg) {
             log(msg.c_str());
         };

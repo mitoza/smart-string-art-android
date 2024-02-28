@@ -32,7 +32,7 @@ Java_com_flycatcher_smartstring_JniBridge_greyImage
 
     // Filter
     StringArtGenerator gen = StringArtGenerator();
-    gen.generateCircle(src, 10, 2, 50).copyTo(result);
+    gen.generateCircle(src, 288, 20, 4000).copyTo(result);
 
 
     // Release resources

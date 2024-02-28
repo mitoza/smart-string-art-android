@@ -1,43 +1,62 @@
 package com.flycatcher.smartstring
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.view.View
+import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import java.io.IOException
-import java.io.InputStream
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivityViewModel(
-    private val state: SavedStateHandle
-): ViewModel() {
+    private val savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
     private val jniBridge = JniBridge()
 
-    private val currentPicture: LiveData<AssetPicture> = state.getLiveData(PICTURE_KEY, AssetPicture.SMILE_GIRL)
-    private val currentBitmap = MutableLiveData<Bitmap>()
+    private var _currentPicture: StateFlow<AssetPicture> = savedStateHandle.getStateFlow(PICTURE_KEY, AssetPicture.SMILE_GIRL)
+    val currentPicture = _currentPicture
 
-    fun getCurrentPictureLiveData(): LiveData<AssetPicture> = currentPicture
+    private var _bitmapFlow = MutableStateFlow<Bitmap?>(null)
+    val bitmapFlow = _bitmapFlow
 
-    fun getCurrentBitmapLiveData(): LiveData<Bitmap> = currentBitmap
-
+    @MainThread
     fun setBitmap(bitmap: Bitmap) {
-        currentBitmap.value = bitmap
+        bitmapFlow.value = bitmap
     }
 
-    fun setPrevPicture(v: View) {
-        state[PICTURE_KEY] = currentPicture.value?.prev()
+    @MainThread
+    fun showPrevPicture() {
+        savedStateHandle[PICTURE_KEY] = currentPicture.value.prev()
     }
 
-    fun setNextPicture(v: View) {
-        state[PICTURE_KEY] = currentPicture.value?.next()
+    @MainThread
+    fun showNextPicture() {
+        savedStateHandle[PICTURE_KEY] = currentPicture.value.next()
     }
 
-    fun generatePicture(v: View) {
-        if (currentBitmap.value == null) return
-        setBitmap(jniBridge.greyImage(currentBitmap.value!!))
+    fun generatePicture() {
+        if (bitmapFlow.value == null) return
+        val mainThread = false
+
+        if (mainThread) {
+            bitmapFlow.value = jniBridge.greyImageRegular(bitmapFlow.value!!)
+        } else {
+            viewModelScope.launch(CoroutineName("BitmapGeneration")) {
+                val bitmap = async {
+                    jniBridge.greyImage(bitmapFlow.value!!)
+                }
+                bitmapFlow.value = bitmap.await()
+            }
+        }
+
     }
 
 
