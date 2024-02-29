@@ -79,8 +79,7 @@ class MainActivity : AppCompatActivity() {
         val minDistance = binding.cGen.snvMinDistance.getProgress()
         val maxLines = binding.cGen.snvMaxLines.getProgress()
         val lineWeight = binding.cGen.snvMinDistance.getProgress()
-        val lineCache = binding.cGen.snvMaxLines.getProgress()
-        viewModel.generatePicture(bitmap, pins, minDistance, maxLines, lineWeight, lineCache)
+        viewModel.generatePicture(bitmap, pins, minDistance, maxLines, lineWeight)
         binding.mainProgress.visibility = View.VISIBLE
     }
 

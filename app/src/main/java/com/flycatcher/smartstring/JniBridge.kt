@@ -13,32 +13,17 @@ class JniBridge() {
     private external fun greyImage(
         width: Int, height: Int,
         pins: Int, minDistance: Int, maxLines: Int,
-        lineWeight: Int, lineCache: Int,
+        lineWeight: Int,
         pixelsIn: IntArray, pixelsOut: IntArray
     )
 
-    fun greyImageRegular(bitmap: Bitmap, pins: Int, minDistance: Int, maxLines: Int,
-                         lineWeight: Int, lineCache: Int,): Bitmap {
-        val outPixels = IntArray(bitmap.width * bitmap.height)
-        greyImage(
-            bitmap.width, bitmap.height,
-            pins, minDistance, maxLines,
-            lineWeight, lineCache,
-            bitmap.toIntArray(), outPixels
-        )
-        val newBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
-        newBitmap.setPixels(outPixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-        return newBitmap
-    }
-
     suspend fun greyImage(bitmap: Bitmap, pins: Int, minDistance: Int, maxLines: Int,
-                          lineWeight: Int, lineCache: Int,): Bitmap =
+                          lineWeight: Int): Bitmap =
         withContext(Dispatchers.IO) {
             val outPixels = IntArray(bitmap.width * bitmap.height)
             greyImage(
                 bitmap.width, bitmap.height,
-                pins, minDistance, maxLines,
-                lineWeight, lineCache,
+                pins, minDistance, maxLines, lineWeight,
                 bitmap.toIntArray(), outPixels
             )
             val newBitmap =

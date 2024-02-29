@@ -36,7 +36,7 @@ namespace fc {
         StringArtGenerator();
 
         Mat generateCircle(const Mat src, int sizeOfPins, int minDistance, int maxLines,
-                           int lineWeight, int lineCache);
+                           int lineWeight);
 
         void sobelFilter(const Mat &src_gray, Mat &dst);
         void circleCrop(const Mat &src, Mat &dst);
@@ -46,8 +46,9 @@ namespace fc {
         // Bresenham Path or LineIterator
         void precalculateLines(int sizeOfPins, int minDistance,
                                std::vector<Point> &pins, std::vector<std::vector<Point>> &lines);
-        void calculateLines(cv::Mat &src, cv::Mat &dst, const int sizeOfPins, const int minDistance, const int maxLines,
-                            const int lineWeight, const int lineCache,
+        void calculateLines(cv::Mat &src, cv::Mat &dst,
+                            const int sizeOfPins, const int minDistance,
+                            const int maxLines, const int lineWeight,
                             std::vector<Point> &pins, std::vector<std::vector<Point>> &lines);
 
         // Choose Darkest Path

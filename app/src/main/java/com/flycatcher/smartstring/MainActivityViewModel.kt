@@ -48,14 +48,11 @@ class MainActivityViewModel(
     }
 
     fun generatePicture(bitmap: Bitmap, pins: Int, minDistance: Int, maxLines: Int,
-                        lineWeight: Int, lineCache: Int) {
+                        lineWeight: Int) {
         generatorJob?.cancel()
         generatorJob = viewModelScope.launch(CoroutineName("BitmapGeneration")) {
             val bitmapDeferred = async {
-                jniBridge.greyImage(bitmap,
-                    pins, minDistance, maxLines,
-                    lineWeight, lineCache
-                )
+                jniBridge.greyImage(bitmap, pins, minDistance, maxLines, lineWeight)
             }
             bitmapFlow.value = bitmapDeferred.await()
         }

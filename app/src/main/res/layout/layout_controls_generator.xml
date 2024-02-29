@@ -67,16 +67,6 @@
                 android:text="Line weight"
                 />
 
-            <com.flycatcher.smartstring.SeekNumberView
-                android:id="@+id/snv_line_cache"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:min="10"
-                android:max="40"
-                android:progress="20"
-                android:text="Line cache"
-                />
-
         </LinearLayout>
 
 

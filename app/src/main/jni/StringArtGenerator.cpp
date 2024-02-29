@@ -17,7 +17,7 @@ namespace fc {
     }
 
     Mat StringArtGenerator::generateCircle(const Mat src, int sizeOfPins, int minDistance,
-                                           int maxLines, int lineWeight, int lineCache) {
+                                           int maxLines, int lineWeight) {
         /* Image preparation */
         Mat bsrc = Mat(src.size(), CV_8UC1);
 
@@ -58,7 +58,7 @@ namespace fc {
 
         // In Loop search the best line with most darkest color from one pin to other
         Mat dst(bsrc.size(), CV_8UC1);
-        calculateLines(bsrc, dst, sizeOfPins, minDistance, maxLines, lineWeight, lineCache, pins, prelines);
+        calculateLines(bsrc, dst, sizeOfPins, minDistance, maxLines, lineWeight, pins, prelines);
 
         // Draw pins
         drawPins(dst, pins, 1);
@@ -164,8 +164,8 @@ namespace fc {
 
     void StringArtGenerator::calculateLines(
             cv::Mat &src, cv::Mat &dst,
-            const int sizeOfPins, const int minDistance, const int maxLines,
-            const int lineWeight, const int lineCache,
+            const int sizeOfPins, const int minDistance,
+            const int maxLines, const int lineWeight,
             std::vector<Point> &pins, std::vector<std::vector<Point>> &lines) {
         int LINE_WEIGHT = lineWeight;
 
