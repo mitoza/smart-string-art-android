@@ -26,7 +26,7 @@ JNIEXPORT jstring JNICALL Java_com_flycatcher_smartstring_JniBridge_showText
  */
 JNIEXPORT void JNICALL Java_com_flycatcher_smartstring_JniBridge_greyImage
         (JNIEnv *, jobject, jint, jint,
-         jint, jint, jint,
+         jint, jint, jint, jint, jint,
          jintArray, jintArray);
 
 

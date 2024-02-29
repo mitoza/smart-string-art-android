@@ -1,7 +1,9 @@
 package com.flycatcher.smartstring
 
 enum class AssetPicture(val filename: String) {
+    SMILE_GIRL_GREY("SmileGirlGrey.png"),
     SMILE_GIRL("SmileGirl.png"),
+    EINSTEIN("Einstein.jpg"),
     DAVID_1300("David1300.jpg"),
     FLYCATCHER_LOGO("FlyCatcherLogo.png"),
     GREEK_WOMAN("GreekWoman.jpg"),

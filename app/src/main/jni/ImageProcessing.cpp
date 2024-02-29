@@ -23,6 +23,7 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_flycatcher_smartstring_JniBridge_greyImage
 (JNIEnv *env, jobject thiz, jint width, jint height,
  jint sizeOfPins, jint minDistance, jint maxLines,
+ jint lineWeight, jint lineCache,
  jintArray pixelsIn, jintArray pixelsOut) {
     // Input
     jint *pPixelsIn = env->GetIntArrayElements(pixelsIn, 0);
@@ -34,7 +35,7 @@ Java_com_flycatcher_smartstring_JniBridge_greyImage
 
     // Filter
     StringArtGenerator gen = StringArtGenerator();
-    gen.generateCircle(src, sizeOfPins, minDistance, maxLines).copyTo(result);
+    gen.generateCircle(src, sizeOfPins, minDistance, maxLines, lineWeight, lineCache).copyTo(result);
 
 
     // Release resources

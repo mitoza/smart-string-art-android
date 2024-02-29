@@ -24,7 +24,7 @@ class MainActivityViewModel(
     private val jniBridge = JniBridge()
 
     private var _currentPicture: StateFlow<AssetPicture> =
-        savedStateHandle.getStateFlow(PICTURE_KEY, AssetPicture.SMILE_GIRL)
+        savedStateHandle.getStateFlow(PICTURE_KEY, AssetPicture.SMILE_GIRL_GREY)
     val currentPicture = _currentPicture
 
     private var _bitmapFlow = MutableStateFlow<Bitmap?>(null)
@@ -47,19 +47,24 @@ class MainActivityViewModel(
         savedStateHandle[PICTURE_KEY] = currentPicture.value.next()
     }
 
-    fun generatePicture(pins: Int, minDistance: Int, maxLines: Int) {
+    fun generatePicture(pins: Int, minDistance: Int, maxLines: Int,
+                        lineWeight: Int, lineCache: Int) {
         if (bitmapFlow.value == null) return
         val mainThread = false
 
         if (mainThread) {
             bitmapFlow.value = jniBridge.greyImageRegular(
                 bitmapFlow.value!!,
-                pins, minDistance, maxLines
+                pins, minDistance, maxLines,
+                lineWeight, lineCache
             )
         } else {
             generatorJob = viewModelScope.launch(CoroutineName("BitmapGeneration")) {
                 val bitmap = async {
-                    jniBridge.greyImage(bitmapFlow.value!!, pins, minDistance, maxLines)
+                    jniBridge.greyImage(bitmapFlow.value!!,
+                        pins, minDistance, maxLines,
+                        lineWeight, lineCache
+                    )
                 }
                 bitmapFlow.value = bitmap.await()
             }

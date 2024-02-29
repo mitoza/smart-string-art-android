@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:min="20"
                 android:max="300"
-                android:progress="180"
+                android:progress="288"
                 android:text="Pin number"
                 />
 
@@ -41,7 +41,8 @@
                 android:id="@+id/snv_min_distance"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:max="5"
+                android:min="2"
+                android:max="100"
                 android:progress="20"
                 android:text="Pin MIN distance"
                 />
@@ -50,12 +51,31 @@
                 android:id="@+id/snv_max_lines"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:min="100"
+                android:min="1"
                 android:max="4000"
                 android:progress="2000"
                 android:text="MAX lines"
                 />
 
+            <com.flycatcher.smartstring.SeekNumberView
+                android:id="@+id/snv_line_weight"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:min="1"
+                android:max="255"
+                android:progress="20"
+                android:text="Line weight"
+                />
+
+            <com.flycatcher.smartstring.SeekNumberView
+                android:id="@+id/snv_line_cache"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:min="10"
+                android:max="40"
+                android:progress="20"
+                android:text="Line cache"
+                />
 
         </LinearLayout>
 
