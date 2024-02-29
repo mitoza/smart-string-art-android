@@ -44,8 +44,8 @@ namespace fc {
         // Bresenham Path
         void precalculateLines(const Mat &src, int sizeOfPins, int minDistance,
                                std::vector<Point> &pins, std::vector<std::vector<Point>> &lines);
-        void calculateLines(const Mat &src, int sizeOfPins, int minDistance, int maxLines,
-                                   Point *pins, std::vector<Point> *lines[]);
+        void calculateLines(cv::Mat &src, int sizeOfPins, int minDistance, int maxLines,
+                            std::vector<Point> &pins, std::vector<std::vector<Point>> &lines);
 
         // Choose Darkest Path
         //

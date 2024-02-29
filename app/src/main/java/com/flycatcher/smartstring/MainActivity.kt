@@ -73,7 +73,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onGeneratePictureClick(v: View) {
-        viewModel.generatePicture()
+        val pins = binding.cGen.snvPins.getProgress()
+        val minDistance = binding.cGen.snvMinDistance.getProgress()
+        val maxLines = binding.cGen.snvMaxLines.getProgress()
+        viewModel.generatePicture(pins, minDistance, maxLines)
     }
 
 }

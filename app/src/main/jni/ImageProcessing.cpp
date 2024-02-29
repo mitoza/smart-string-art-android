@@ -21,7 +21,9 @@ Java_com_flycatcher_smartstring_JniBridge_showText
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_flycatcher_smartstring_JniBridge_greyImage
-(JNIEnv *env, jobject thiz, jint width, jint height, jintArray pixelsIn, jintArray pixelsOut) {
+(JNIEnv *env, jobject thiz, jint width, jint height,
+ jint sizeOfPins, jint minDistance, jint maxLines,
+ jintArray pixelsIn, jintArray pixelsOut) {
     // Input
     jint *pPixelsIn = env->GetIntArrayElements(pixelsIn, 0);
     Mat src(height, width, CV_8UC4, (unsigned char *) pPixelsIn);
@@ -32,7 +34,7 @@ Java_com_flycatcher_smartstring_JniBridge_greyImage
 
     // Filter
     StringArtGenerator gen = StringArtGenerator();
-    gen.generateCircle(src, 288, 20, 4000).copyTo(result);
+    gen.generateCircle(src, sizeOfPins, minDistance, maxLines).copyTo(result);
 
 
     // Release resources

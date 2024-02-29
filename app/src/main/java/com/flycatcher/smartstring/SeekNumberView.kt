@@ -2,15 +2,20 @@ package com.flycatcher.smartstring
 
 import android.content.Context
 import android.os.Build
+import android.os.Bundle
+import android.os.Parcelable
 import android.util.AttributeSet
+import android.util.SparseArray
 import android.view.LayoutInflater
+import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.children
 import com.flycatcher.smartstringart.R
 import com.flycatcher.smartstringart.databinding.ViewSeekNumberBinding
 
 class SeekNumberView @JvmOverloads constructor(context: Context, attrSet: AttributeSet? = null, defStyleAttr: Int = -1) :
-    ConstraintLayout(context, attrSet, defStyleAttr),
+    SaveStateConstraintLayout(context, attrSet, defStyleAttr),
     SeekBar.OnSeekBarChangeListener {
 
     val binding: ViewSeekNumberBinding =

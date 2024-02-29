@@ -8,7 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,44 +23,50 @@ class MainActivityViewModel(
 
     private val jniBridge = JniBridge()
 
-    private var _currentPicture: StateFlow<AssetPicture> = savedStateHandle.getStateFlow(PICTURE_KEY, AssetPicture.SMILE_GIRL)
+    private var _currentPicture: StateFlow<AssetPicture> =
+        savedStateHandle.getStateFlow(PICTURE_KEY, AssetPicture.SMILE_GIRL)
     val currentPicture = _currentPicture
 
     private var _bitmapFlow = MutableStateFlow<Bitmap?>(null)
     val bitmapFlow = _bitmapFlow
 
-    @MainThread
+    private var generatorJob: Job? = null
+
+
     fun setBitmap(bitmap: Bitmap) {
         bitmapFlow.value = bitmap
     }
 
-    @MainThread
     fun showPrevPicture() {
+        generatorJob?.cancel()
         savedStateHandle[PICTURE_KEY] = currentPicture.value.prev()
     }
 
-    @MainThread
     fun showNextPicture() {
+        generatorJob?.cancel()
         savedStateHandle[PICTURE_KEY] = currentPicture.value.next()
     }
 
-    fun generatePicture() {
+    fun generatePicture(pins: Int, minDistance: Int, maxLines: Int) {
         if (bitmapFlow.value == null) return
         val mainThread = false
 
         if (mainThread) {
-            bitmapFlow.value = jniBridge.greyImageRegular(bitmapFlow.value!!)
+            bitmapFlow.value = jniBridge.greyImageRegular(
+                bitmapFlow.value!!,
+                pins, minDistance, maxLines
+            )
         } else {
-            viewModelScope.launch(CoroutineName("BitmapGeneration")) {
+            generatorJob = viewModelScope.launch(CoroutineName("BitmapGeneration")) {
                 val bitmap = async {
-                    jniBridge.greyImage(bitmapFlow.value!!)
+                    jniBridge.greyImage(bitmapFlow.value!!, pins, minDistance, maxLines)
                 }
                 bitmapFlow.value = bitmap.await()
             }
+
         }
 
     }
-
 
     companion object {
         val PICTURE_KEY = "picture_key"

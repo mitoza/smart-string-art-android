@@ -16,7 +16,8 @@ namespace fc {
 
     }
 
-    Mat StringArtGenerator::generateCircle(const Mat src, int sizeOfPins, int minDistance, int maxLines) {
+    Mat StringArtGenerator::generateCircle(const Mat src, int sizeOfPins, int minDistance,
+                                           int maxLines) {
         /* Image preparation */
         Mat bsrc = Mat(src.size(), CV_8UC1);
 
@@ -48,16 +49,14 @@ namespace fc {
         fillPinsAsCircle(bsrc, sizeOfPins, pins);
         log(format("Pins time: %ldns", (currentTimeInNanos() - pinsTime)));
 
-
-
         // Precalculate all potential Lines
-//        long linesTime = currentTimeInNanos();
-        std::vector<std::vector<Point>> lines(sizeOfPins * sizeOfPins);
-        precalculateLines(bsrc, sizeOfPins, minDistance, pins, lines);
-//        log(format("Lines time: %ldns", (currentTimeInNanos() - linesTime)));
-//
-//        // In Loop search the best line with most darkest color from one pin to other
-//        calculateLines(bsrc, sizeOfPins, minDistance, maxLines, pins, preLines);
+        long linesTime = currentTimeInNanos();
+        std::vector<std::vector<Point>> prelines(sizeOfPins * sizeOfPins);
+        precalculateLines(bsrc, sizeOfPins, minDistance, pins, prelines);
+        log(format("Pre-lines time: %ldns", (currentTimeInNanos() - linesTime)));
+
+        // In Loop search the best line with most darkest color from one pin to other
+        calculateLines(bsrc, sizeOfPins, minDistance, maxLines, pins, prelines);
 
         /* Result */
         Mat result;
@@ -97,8 +96,8 @@ namespace fc {
         circleImage.release();
     }
 
-    void StringArtGenerator::fillPinsAsCircle(const Mat &src, int sizeOfPins,
-                                              std::vector<Point> &pins) {
+    void StringArtGenerator::fillPinsAsCircle(
+            const Mat &src, int sizeOfPins, std::vector<Point> &pins) {
         int nailRadius = 1;
         int center = min(src.rows, src.cols) / 2;
         int radius = center - 1;
@@ -108,19 +107,20 @@ namespace fc {
         for (int i = 0; i < sizeOfPins; i++) {
             angle = 2 * CV_PI * i / sizeOfPins;
             Point pin = Point((int) (center + radius * cos(angle)),
-                            (int) (center + radius * sin(angle)));
+                              (int) (center + radius * sin(angle)));
             pins.push_back(pin);
             circle(src, pin, nailRadius, nailColor, -1);
             //log(format("Pin[%d]: %d, %d", i, pins[i].x, pins[i].y));
         }
-    }
+    } // End of fillPinsAsCircle()
 
-    void StringArtGenerator::precalculateLines(const Mat &src, int sizeOfPins, int minDistance,
+    void StringArtGenerator::precalculateLines(
+            const Mat &src, int sizeOfPins, int minDistance,
             std::vector<Point> &pins, std::vector<std::vector<Point>> &lines) {
         int first, second, distance;
         double deltaX, deltaY;
         Point p0, p1;
-
+        Point linePoint;
         for (int i = 0; i < sizeOfPins; i++) {
             for (int j = i + minDistance; j < sizeOfPins; j++) {
                 first = j * sizeOfPins + i;
@@ -130,39 +130,36 @@ namespace fc {
                 distance = (int) sqrt(
                         (p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
                 // Fill line with pixels coordinates
-                if (distance != 1) {
-                    deltaX = (p1.x - p0.x) / (distance - 1.0);
-                    deltaY = (p1.y - p0.y) / (distance - 1.0);
-                    for (int k = 0; k < distance - 1; k = k + 1) {
-                        Point linePoint = Point((int) (p0.x + deltaX * k),
-                                                (int) (p0.y + deltaY * k));
-                        lines[first].push_back(linePoint);
-                        if (first != second) {
-                            lines[second].push_back(linePoint);
-                        }
-                        if (i == 7) {
-                            circle(src, linePoint, 5, 255, -1);
-                        }
-                    }
-                    // Ensure that the last point of line is p1
-                    lines[first].push_back(p1);
+                if (distance == 1) continue;
+                deltaX = (p1.x - p0.x) / (distance - 1.0);
+                deltaY = (p1.y - p0.y) / (distance - 1.0);
+                for (int k = 0; k < distance - 1; k = k + 1) {
+                    linePoint = Point((int) (p0.x + deltaX * k),
+                                      (int) (p0.y + deltaY * k));
+                    lines[first].push_back(linePoint);
                     if (first != second) {
-                        lines[second].push_back(p1);
+                        lines[second].push_back(linePoint);
                     }
+//                    if (i == 0) {
+//                        circle(src, linePoint, 1, 255, -1);
+//                    }
+                }
+                // Ensure that the last point of line is p1
+                lines[first].push_back(p1);
+                if (first != second) {
+                    lines[second].push_back(p1);
                 }
 
-                log(format("Line[%d]: %d", first, lines[first].size()));
-                log(format("Line[%d]: %d", second, lines[second].size()));
-
+                //log(format("Line[%d][%d]: %d", first, second, lines[first].size()));
             }
-
         }
-
-    }
+    } // End of precalculateLines()
 
     void StringArtGenerator::calculateLines(
-            const cv::Mat &src, int sizeOfPins, int minDistance, int maxLines,
-            cv::Point *pins, std::vector<Point> *lines[]) {
+            cv::Mat &src, int sizeOfPins, int minDistance, int maxLines,
+            std::vector<Point> &pins, std::vector<std::vector<Point>> &lines) {
+        int LINE_WEIGHT = 8;
+        std::vector<int> lineSequence;
         std::vector<int> lastPins;
         int currentPin = 0;
         int bestPin = -1;
@@ -171,30 +168,59 @@ namespace fc {
         int index = 0;
         int innerIndex = 0;
 
-//        for(int i=0; i<maxLines; i++) {
-//
-//            for(int offset = minDistance; offset < sizeOfPins - minDistance; offset++) {
-//                int testPin = (currentPin + offset) % sizeOfPins;
-//
-//                // Check if lastPins contains testPin
-//                if (std::find(lastPins.begin(), lastPins.end(), testPin) != lastPins.end()) {
-//                    continue;
-//                }
-//
-//                innerIndex = testPin * sizeOfPins + currentPin;
-//
-//                // Calculate line error
-//                lineError = 0;
-//                log(format("Line[%d]: %d", innerIndex, lines[innerIndex].points.size()));
-//                for(auto ptr=lines[innerIndex].points.begin(); ptr < lines[innerIndex].points.end(); ptr++) {
-//                    log(format("Line[%d]: %d, %d", innerIndex, ptr->x, ptr->y));
-//                    //lineError += src.at<uchar>(ptr->x, ptr->y)
-//                }
-//
-//            }
-//
-//        }
+        for (int i = 0; i < maxLines; i++) {
+            bestPin = -1;
+            lineError = 0;
+            maxError = 0;
 
+            for (int offset = minDistance; offset < sizeOfPins - minDistance; offset++) {
+                int testPin = (currentPin + offset) % sizeOfPins;
+
+                // Check if lastPins contains testPin
+                if (std::find(lastPins.begin(), lastPins.end(), testPin) != lastPins.end()) {
+                    continue;
+                }
+
+                innerIndex = testPin * sizeOfPins + currentPin;
+
+                // Calculate line error
+                lineError = 0;
+                //log(format("Line[%d]: %d", innerIndex, lines[innerIndex].size()));
+                for (auto ptr = lines[innerIndex].begin(); ptr < lines[innerIndex].end(); ptr++) {
+                    //log(format("Line[%d]: %d, %d", innerIndex, ptr->x, ptr->y));
+                    lineError += src.at<uchar>(ptr->x, ptr->y);
+                }
+                if (lineError >= maxError) {
+                    maxError = lineError;
+                    bestPin = testPin;
+                    index = innerIndex;
+                }
+            }
+
+            lineSequence.push_back(bestPin);
+
+            int lineSize = lines[index].size();
+            Point pixelPoint;
+            uchar pixelValue;
+            for (int j = 0; j < lineSize; j++) {
+                pixelPoint = lines[index][j];
+                pixelValue = src.at<uchar>(pixelPoint);
+                src.at<uchar>(pixelPoint) = max(0, pixelValue - LINE_WEIGHT);
+            }
+
+            lastPins.push_back(bestPin);
+            currentPin = bestPin;
+
+        }
+        log(format("Line sequence size: %d", lineSequence.size()));
+        for (int i = 1; i < lineSequence.size(); i++) {
+            if (lineSequence[i] == -1) {
+                log(format("Stop at %d line of %d", i, maxLines));
+                break;
+            }
+            //log(format("Point[%d]", lineSequence[i]));
+            line(src, pins[lineSequence[i - 1]], pins[lineSequence[i]], (255, 255, 255), 1);
+        }
 
     }
 

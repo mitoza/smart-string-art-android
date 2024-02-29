@@ -11,25 +11,36 @@ class JniBridge() {
     external fun showText(text: String): String
 
     private external fun greyImage(
-        width: Int, height: Int, pixelsIn: IntArray,
-        pixelsOut: IntArray
-        )
+        width: Int, height: Int,
+        pins: Int, minDistance: Int, maxLines: Int,
+        pixelsIn: IntArray, pixelsOut: IntArray
+    )
 
-    fun greyImageRegular(bitmap: Bitmap): Bitmap {
+    fun greyImageRegular(bitmap: Bitmap, pins: Int, minDistance: Int, maxLines: Int): Bitmap {
         val outPixels = IntArray(bitmap.width * bitmap.height)
-        greyImage(bitmap.width, bitmap.height, bitmap.toIntArray(), outPixels)
+        greyImage(
+            bitmap.width, bitmap.height,
+            pins, minDistance, maxLines,
+            bitmap.toIntArray(), outPixels
+        )
         val newBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
         newBitmap.setPixels(outPixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
         return newBitmap
     }
 
-    suspend fun greyImage(bitmap: Bitmap): Bitmap = withContext(Dispatchers.IO) {
-        val outPixels = IntArray(bitmap.width * bitmap.height)
-        greyImage(bitmap.width, bitmap.height, bitmap.toIntArray(), outPixels)
-        val newBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
-        newBitmap.setPixels(outPixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-        newBitmap
-    }
+    suspend fun greyImage(bitmap: Bitmap, pins: Int, minDistance: Int, maxLines: Int): Bitmap =
+        withContext(Dispatchers.IO) {
+            val outPixels = IntArray(bitmap.width * bitmap.height)
+            greyImage(
+                bitmap.width, bitmap.height,
+                pins, minDistance, maxLines,
+                bitmap.toIntArray(), outPixels
+            )
+            val newBitmap =
+                Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+            newBitmap.setPixels(outPixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+            newBitmap
+        }
 
     init {
         System.loadLibrary("opencv_java4")
