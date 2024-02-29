@@ -74,13 +74,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onGeneratePictureClick(v: View) {
+        val bitmap = getPicture(viewModel.currentPicture.value);
         val pins = binding.cGen.snvPins.getProgress()
         val minDistance = binding.cGen.snvMinDistance.getProgress()
         val maxLines = binding.cGen.snvMaxLines.getProgress()
         val lineWeight = binding.cGen.snvMinDistance.getProgress()
         val lineCache = binding.cGen.snvMaxLines.getProgress()
-
-        viewModel.generatePicture(pins, minDistance, maxLines, lineWeight, lineCache)
+        viewModel.generatePicture(bitmap, pins, minDistance, maxLines, lineWeight, lineCache)
         binding.mainProgress.visibility = View.VISIBLE
     }
 

@@ -23,8 +23,8 @@ namespace fc {
 
         // Make image gray
         GaussianBlur(src, src, Size(3, 3), 0, 0, BORDER_DEFAULT);
-        //cvtColor(src, bsrc, COLOR_RGB2GRAY);
-        extractChannel(src, bsrc, 0);
+        cvtColor(src, bsrc, COLOR_RGB2GRAY);
+        //extractChannel(src, bsrc, 0);
 
         // Sobel Filter
         //sobelFilter(bsrc, bsrc);
@@ -33,8 +33,8 @@ namespace fc {
         int kernelSize = 9;
         GaussianBlur(bsrc, bsrc, cv::Size(kernelSize, kernelSize), 0.0);
         //adaptiveThreshold(bsrc, bsrc, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, kernelSize, 10);
-        sobelFilter(bsrc, bsrc);
-        //bitwise_not(bsrc, bsrc);
+        //sobelFilter(bsrc, bsrc);
+        bitwise_not(bsrc, bsrc);
         //int kernelSize2 = 9;
         //GaussianBlur(bsrc, bsrc, cv::Size(kernelSize2, kernelSize2), 0.0);
 
@@ -53,7 +53,7 @@ namespace fc {
         // Precalculate all potential Lines
         long linesTime = currentTimeInNanos();
         std::vector<std::vector<Point>> prelines(sizeOfPins * sizeOfPins);
-        precalculateLines(bsrc, sizeOfPins, minDistance, pins, prelines);
+        precalculateLines(sizeOfPins, minDistance, pins, prelines);
         log(format("Pre-lines time: %ldns", (currentTimeInNanos() - linesTime)));
 
         // In Loop search the best line with most darkest color from one pin to other
@@ -125,7 +125,7 @@ namespace fc {
 
     // TODO: Check LineIterator in OpenCV
     void StringArtGenerator::precalculateLines(
-            const Mat &src, int sizeOfPins, int minDistance,
+            int sizeOfPins, int minDistance,
             std::vector<Point> &pins, std::vector<std::vector<Point>> &lines) {
         int first, second, distance;
         double deltaX, deltaY;
@@ -150,9 +150,6 @@ namespace fc {
                     if (first != second) {
                         lines[second].push_back(linePoint);
                     }
-//                    if (i == 0) {
-//                        circle(src, linePoint, 1, 255, -1);
-//                    }
                 }
                 // Ensure that the last point of line is p1
                 lines[first].push_back(p1);
@@ -231,15 +228,24 @@ namespace fc {
         }
 
         // Fill the image
-        dst.setTo(255);
+        Mat lineCanvas(dst.size(), CV_8UC1);
+        Mat src1(dst.size(), CV_8UC1);
+        lineCanvas.setTo(0);
         for (int i = 1; i < lineSequence.size(); i++) {
             if (lineSequence[i] == -1) {
                 log(format("Stop at %d line of %d", i, maxLines));
                 break;
             }
+            src1.setTo(0);
             //log(format("Point[%d]", lineSequence[i]));
-            line(dst, pins[lineSequence[i - 1]], pins[lineSequence[i]], (0, 0, 0), 1);
+            line(src1, pins[lineSequence[i - 1]], pins[lineSequence[i]], lineWeight, 1);
+            add(lineCanvas, src1, lineCanvas);
+
         }
+        src1.release();
+        bitwise_not(lineCanvas, lineCanvas);
+        lineCanvas.copyTo(dst);
+        lineCanvas.release();
         log(format("Line sequence size: %d", lineSequence.size()));
 
     }

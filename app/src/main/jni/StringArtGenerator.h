@@ -43,8 +43,8 @@ namespace fc {
 
         void fillPinsAsCircle(const Mat &src, int sizeOfPins, std::vector<Point> &pins);
         void drawPins(const Mat &src, const std::vector<Point> &pins, const int radius);
-        // Bresenham Path
-        void precalculateLines(const Mat &src, int sizeOfPins, int minDistance,
+        // Bresenham Path or LineIterator
+        void precalculateLines(int sizeOfPins, int minDistance,
                                std::vector<Point> &pins, std::vector<std::vector<Point>> &lines);
         void calculateLines(cv::Mat &src, cv::Mat &dst, const int sizeOfPins, const int minDistance, const int maxLines,
                             const int lineWeight, const int lineCache,

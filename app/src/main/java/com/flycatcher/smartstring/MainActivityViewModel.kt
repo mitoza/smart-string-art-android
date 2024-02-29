@@ -47,30 +47,18 @@ class MainActivityViewModel(
         savedStateHandle[PICTURE_KEY] = currentPicture.value.next()
     }
 
-    fun generatePicture(pins: Int, minDistance: Int, maxLines: Int,
+    fun generatePicture(bitmap: Bitmap, pins: Int, minDistance: Int, maxLines: Int,
                         lineWeight: Int, lineCache: Int) {
-        if (bitmapFlow.value == null) return
-        val mainThread = false
-
-        if (mainThread) {
-            bitmapFlow.value = jniBridge.greyImageRegular(
-                bitmapFlow.value!!,
-                pins, minDistance, maxLines,
-                lineWeight, lineCache
-            )
-        } else {
-            generatorJob = viewModelScope.launch(CoroutineName("BitmapGeneration")) {
-                val bitmap = async {
-                    jniBridge.greyImage(bitmapFlow.value!!,
-                        pins, minDistance, maxLines,
-                        lineWeight, lineCache
-                    )
-                }
-                bitmapFlow.value = bitmap.await()
+        generatorJob?.cancel()
+        generatorJob = viewModelScope.launch(CoroutineName("BitmapGeneration")) {
+            val bitmapDeferred = async {
+                jniBridge.greyImage(bitmap,
+                    pins, minDistance, maxLines,
+                    lineWeight, lineCache
+                )
             }
-
+            bitmapFlow.value = bitmapDeferred.await()
         }
-
     }
 
     companion object {
