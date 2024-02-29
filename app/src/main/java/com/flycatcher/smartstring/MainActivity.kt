@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateBitmap(bitmap: Bitmap?) {
         binding.mainPreview.setImageBitmap(bitmap)
+        binding.mainProgress.visibility = View.GONE
     }
 
     private fun onPrevPictureClick(v: View) {
@@ -77,6 +78,7 @@ class MainActivity : AppCompatActivity() {
         val minDistance = binding.cGen.snvMinDistance.getProgress()
         val maxLines = binding.cGen.snvMaxLines.getProgress()
         viewModel.generatePicture(pins, minDistance, maxLines)
+        binding.mainProgress.visibility = View.VISIBLE
     }
 
 }
