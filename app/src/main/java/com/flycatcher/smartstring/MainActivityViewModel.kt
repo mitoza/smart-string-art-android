@@ -1,6 +1,7 @@
 package com.flycatcher.smartstring
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.SavedStateHandle
@@ -56,6 +57,15 @@ class MainActivityViewModel(
             }
             bitmapFlow.value = bitmapDeferred.await()
         }
+    }
+
+    fun checkProgress() {
+        jniBridge.callbackJNI(object : JniBridge.JNIListener {
+            override fun sendProgress(progress: Int, msg: String) {
+                Log.d("JniCallback", "Message $msg is $progress%")
+            }
+
+        })
     }
 
     companion object {

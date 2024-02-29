@@ -38,7 +38,12 @@ class MainActivity : AppCompatActivity() {
         binding.cImage.btnPrevPicture.setOnClickListener(this::onPrevPictureClick)
         binding.cImage.btnNextPicture.setOnClickListener(this::onNextPictureClick)
         binding.cGen.btnMakeIt.setOnClickListener(this::onGeneratePictureClick)
+        binding.cImage.tvPictureName.setOnClickListener(this::onFilenameClick)
 
+    }
+
+    private fun onFilenameClick(view: View) {
+        viewModel.checkProgress()
     }
 
     private fun getPicture(picture: AssetPicture): Bitmap {

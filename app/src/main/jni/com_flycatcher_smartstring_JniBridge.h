@@ -29,6 +29,13 @@ JNIEXPORT void JNICALL Java_com_flycatcher_smartstring_JniBridge_greyImage
          jint, jint, jint, jint,
          jintArray, jintArray);
 
+/*
+ * Class:     Java_com_flycatcher_smartstring_JniBridge
+ * Method:    callbackJNI
+ */
+JNIEXPORT void JNICALL Java_com_flycatcher_smartstring_JniBridge_callbackJNI
+        (JNIEnv *, jobject, jobject);
+
 
 #ifdef __cplusplus
 }
