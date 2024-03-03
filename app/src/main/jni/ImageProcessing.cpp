@@ -50,15 +50,16 @@ Java_com_flycatcher_smartstring_JniBridge_greyImage
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_flycatcher_smartstring_JniBridge_callbackJNI
-        (JNIEnv *env, jobject instance, jobject listener) {
-    JavaVM *jvm;
+        (JNIEnv *env, jobject thiz, jobject listener) {
+    // Check JVM 
+    JavaVM *jvm = nullptr;
     env->GetJavaVM(&jvm);
-    //store_env = env;
-    jweak store_Wlistener = env ->NewWeakGlobalRef(listener);
+    if (nullptr == jvm) return;
 
+    jweak store_Wlistener = env ->NewWeakGlobalRef(listener);
     jclass clazz = env->GetObjectClass(store_Wlistener);
     jmethodID store_method = env->GetMethodID(clazz, "sendProgress", "(ILjava/lang/String;)V");
-    if (NULL == jvm) return;
+
     jstring msg;
     for(int i=0; i<10; i++) {
         if (i==0) msg = env->NewStringUTF("Started");
