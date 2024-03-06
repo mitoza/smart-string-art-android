@@ -18,6 +18,7 @@ namespace fc {
 
     Mat StringArtGenerator::generateCircle(const Mat src, int sizeOfPins, int minDistance,
                                            int maxLines, int lineWeight) {
+        progress(0);
         /* Image preparation */
         Mat bsrc = Mat(src.size(), CV_8UC1);
 
@@ -25,7 +26,7 @@ namespace fc {
         GaussianBlur(src, src, Size(3, 3), 0, 0, BORDER_DEFAULT);
         cvtColor(src, bsrc, COLOR_RGB2GRAY);
         //extractChannel(src, bsrc, 0);
-
+        progress(1);
         // Sobel Filter
         //sobelFilter(bsrc, bsrc);
 
@@ -37,11 +38,11 @@ namespace fc {
         bitwise_not(bsrc, bsrc);
         //int kernelSize2 = 9;
         //GaussianBlur(bsrc, bsrc, cv::Size(kernelSize2, kernelSize2), 0.0);
-
+        progress(2);
         // Circle crop
         circleCrop(bsrc, bsrc);
         log(format("Image size: %dx%d", bsrc.cols, bsrc.rows));
-
+        progress(3);
         /* Find the lines */
 
         // Set pins
@@ -49,20 +50,20 @@ namespace fc {
         std::vector<Point> pins;
         fillPinsAsCircle(bsrc, sizeOfPins, pins);
         log(format("Pins time: %ldns", (currentTimeInNanos() - pinsTime)));
-
+        progress(4);
         // Precalculate all potential Lines
         long linesTime = currentTimeInNanos();
         std::vector<std::vector<Point>> prelines(sizeOfPins * sizeOfPins);
         precalculateLines(sizeOfPins, minDistance, pins, prelines);
         log(format("Pre-lines time: %ldns", (currentTimeInNanos() - linesTime)));
-
+        progress(5);
         // In Loop search the best line with most darkest color from one pin to other
         Mat dst(bsrc.size(), CV_8UC1);
         calculateLines(bsrc, dst, sizeOfPins, minDistance, maxLines, lineWeight, pins, prelines);
-
+        progress(99);
         // Draw pins
         drawPins(dst, pins, 1);
-
+        progress(100);
         /* Result */
         Mat result;
         cvtColor(dst, result, COLOR_GRAY2RGBA);
@@ -188,7 +189,6 @@ namespace fc {
 
                 // Check if lastPins contains testPin
                 if (std::find(lastPins.begin(), lastPins.end(), testPin) != lastPins.end()) {
-                    //log(format("Contains[%d]. Size[%d]", i, lastPins.size()));
                     continue;
                 }
 
@@ -196,7 +196,7 @@ namespace fc {
 
                 // Calculate line error
                 lineError = 0;
-                //log(format("Line[%d]: %d", innerIndex, lines[innerIndex].size()));
+
                 uchar colorValue;
                 for (auto ptr = lines[innerIndex].begin(); ptr < lines[innerIndex].end(); ptr++) {
                     colorValue = src.at<uchar>(*ptr);
@@ -237,7 +237,6 @@ namespace fc {
                 break;
             }
             src1.setTo(0);
-            //log(format("Point[%d]", lineSequence[i]));
             line(src1, pins[lineSequence[i - 1]], pins[lineSequence[i]], lineWeight, 1);
             add(lineCanvas, src1, lineCanvas);
 
@@ -246,7 +245,7 @@ namespace fc {
         bitwise_not(lineCanvas, lineCanvas);
         lineCanvas.copyTo(dst);
         lineCanvas.release();
-        log(format("Line sequence size: %d", lineSequence.size()));
+
 
     }
 

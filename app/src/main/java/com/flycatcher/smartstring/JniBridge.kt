@@ -16,17 +16,17 @@ class JniBridge() {
         width: Int, height: Int,
         pins: Int, minDistance: Int, maxLines: Int,
         lineWeight: Int,
-        pixelsIn: IntArray, pixelsOut: IntArray
+        pixelsIn: IntArray, pixelsOut: IntArray, listener: StringArtProgress
     )
 
     suspend fun greyImage(
-        bitmap: Bitmap, pins: Int, minDistance: Int, maxLines: Int, lineWeight: Int
+        bitmap: Bitmap, pins: Int, minDistance: Int, maxLines: Int, lineWeight: Int, callback: StringArtProgress
     ): Bitmap = withContext(Dispatchers.IO) {
         val outPixels = IntArray(bitmap.width * bitmap.height)
         greyImage(
             bitmap.width, bitmap.height,
             pins, minDistance, maxLines, lineWeight,
-            bitmap.toIntArray(), outPixels
+            bitmap.toIntArray(), outPixels, callback
         )
         val newBitmap =
             Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
@@ -41,6 +41,10 @@ class JniBridge() {
 
     interface JNIListener {
         fun sendProgress(progress: Int, msg: String)
+    }
+
+    interface StringArtProgress {
+        fun sendProgress(progress: Int)
     }
 
 }

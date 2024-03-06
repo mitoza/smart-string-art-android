@@ -1,6 +1,7 @@
 package com.flycatcher.smartstring
 
 import android.graphics.Bitmap
+import android.os.FileUtils.ProgressListener
 import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
@@ -52,8 +53,9 @@ class MainActivityViewModel(
                         lineWeight: Int) {
         generatorJob?.cancel()
         generatorJob = viewModelScope.launch(CoroutineName("BitmapGeneration")) {
+            val progress = StringArtProgressImpl()
             val bitmapDeferred = async {
-                jniBridge.greyImage(bitmap, pins, minDistance, maxLines, lineWeight)
+                jniBridge.greyImage(bitmap, pins, minDistance, maxLines, lineWeight, progress)
             }
             bitmapFlow.value = bitmapDeferred.await()
         }
@@ -70,6 +72,13 @@ class MainActivityViewModel(
 
     companion object {
         val PICTURE_KEY = "picture_key"
+    }
+
+    class StringArtProgressImpl: JniBridge.StringArtProgress {
+        override fun sendProgress(progress: Int) {
+            Log.d("JNI", "Progress: $progress")
+        }
+
     }
 
 }

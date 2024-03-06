@@ -21,6 +21,8 @@ using namespace cv;
 
 namespace fc {
 
+    using ProgressCallback = void (*)(int progress);
+
     class StringArtGenerator {
 
     public:
@@ -51,9 +53,18 @@ namespace fc {
                             const int maxLines, const int lineWeight,
                             std::vector<Point> &pins, std::vector<std::vector<Point>> &lines);
 
+        void addCallback(ProgressCallback fptr) { mProgressCallback = fptr; };
+
         // Choose Darkest Path
         //
     private:
+
+        ProgressCallback mProgressCallback = nullptr;
+        void progress(int progress) {
+            if (nullptr == mProgressCallback) return;
+            mProgressCallback(progress);
+        }
+
 
         void log(String msg) {
             log(msg.c_str());
