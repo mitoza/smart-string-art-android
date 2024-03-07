@@ -16,63 +16,80 @@ namespace fc {
 
     }
 
-    Mat StringArtGenerator::generateCircle(const Mat src, int sizeOfPins, int minDistance,
-                                           int maxLines, int lineWeight) {
+    StringArtGenerator::~StringArtGenerator() {
+        release();
+    }
+
+    Mat StringArtGenerator::generateCircle(const Mat src) {
         progress(0);
         /* Image preparation */
-        Mat bsrc = Mat(src.size(), CV_8UC1);
-
-        // Make image gray
-        GaussianBlur(src, src, Size(3, 3), 0, 0, BORDER_DEFAULT);
-        cvtColor(src, bsrc, COLOR_RGB2GRAY);
-        //extractChannel(src, bsrc, 0);
-        progress(1);
-        // Sobel Filter
-        //sobelFilter(bsrc, bsrc);
-
-        // Inverted image
-        int kernelSize = 9;
-        GaussianBlur(bsrc, bsrc, cv::Size(kernelSize, kernelSize), 0.0);
-        //adaptiveThreshold(bsrc, bsrc, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, kernelSize, 10);
-        //sobelFilter(bsrc, bsrc);
-        bitwise_not(bsrc, bsrc);
-        //int kernelSize2 = 9;
-        //GaussianBlur(bsrc, bsrc, cv::Size(kernelSize2, kernelSize2), 0.0);
-        progress(2);
-        // Circle crop
-        circleCrop(bsrc, bsrc);
-        log(format("Image size: %dx%d", bsrc.cols, bsrc.rows));
+        Mat bsrc = prepareImage(src);
         progress(3);
+
         /* Find the lines */
 
         // Set pins
-        long pinsTime = currentTimeInNanos();
-        std::vector<Point> pins;
-        fillPinsAsCircle(bsrc, sizeOfPins, pins);
-        log(format("Pins time: %ldns", (currentTimeInNanos() - pinsTime)));
+        fillPinsAsCircle(bsrc);
         progress(4);
+
         // Precalculate all potential Lines
         long linesTime = currentTimeInNanos();
-        std::vector<std::vector<Point>> prelines(sizeOfPins * sizeOfPins);
-        precalculateLines(sizeOfPins, minDistance, pins, prelines);
+
+        _preLines = precalculateLines(_pins);
         log(format("Pre-lines time: %ldns", (currentTimeInNanos() - linesTime)));
         progress(5);
+
         // In Loop search the best line with most darkest color from one pin to other
-        Mat dst(bsrc.size(), CV_8UC1);
-        calculateLines(bsrc, dst, sizeOfPins, minDistance, maxLines, lineWeight, pins, prelines);
+        std::vector<int> lineSequence = calculateLines(bsrc, _preLines);
         progress(99);
+
+        // Draw lines
+        Mat dst = drawLines(bsrc.size(), _pins, lineSequence, _lineWeight);
+
         // Draw pins
-        drawPins(dst, pins, 1);
+        drawPins(dst, _pins);
         progress(100);
+
+
         /* Result */
         Mat result;
         cvtColor(dst, result, COLOR_GRAY2RGBA);
 
         // Release resources
+        std::destroy(lineSequence.begin(), lineSequence.end());
+        dst.release();
         bsrc.release();
 
         //line(result, Point(0,0), Point(src.cols, src.rows/2), (255,0,0), 1);
         return result;
+    }
+
+    Mat StringArtGenerator::prepareImage(const Mat &src) {
+
+        // Make image gray
+        GaussianBlur(src, src, Size(3, 3), 0, 0, BORDER_DEFAULT);
+        Mat dst(src.size(), CV_8UC1);
+        cvtColor(src, dst, COLOR_RGB2GRAY);
+
+        //extractChannel(src, bsrc, 0);
+
+        // Sobel Filter
+        //sobelFilter(bsrc, bsrc);
+
+        // Inverted image
+        int kernelSize = 9;
+        GaussianBlur(dst, dst, cv::Size(kernelSize, kernelSize), 0.0);
+        //adaptiveThreshold(bsrc, bsrc, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, kernelSize, 10);
+        //sobelFilter(bsrc, bsrc);
+        bitwise_not(dst, dst);
+
+        //int kernelSize2 = 9;
+        //GaussianBlur(bsrc, bsrc, cv::Size(kernelSize2, kernelSize2), 0.0);
+
+        // Circle crop
+        circleCrop(dst, dst);
+
+        return dst;
     }
 
     void StringArtGenerator::sobelFilter(const Mat &src_gray, Mat &dst) {
@@ -102,40 +119,38 @@ namespace fc {
         circleImage.release();
     }
 
-    void StringArtGenerator::fillPinsAsCircle(
-            const Mat &src, int sizeOfPins, std::vector<Point> &pins) {
+    void StringArtGenerator::fillPinsAsCircle(const Mat &src) {
         int center = min(src.rows, src.cols) / 2;
         int radius = center - 1;
-        Vec3b nailColor = 128;
         double angle;
-        pins.clear();
-        for (int i = 0; i < sizeOfPins; i++) {
-            angle = 2 * CV_PI * i / sizeOfPins;
+        _pins.clear();
+        for (int i = 0; i < _sizeOfPins; i++) {
+            angle = 2 * CV_PI * i / _sizeOfPins;
             Point pin = Point((int) (src.cols / 2 + radius * cos(angle)),
                               (int) (src.rows / 2 + radius * sin(angle)));
-            pins.push_back(pin);
-            //log(format("Pin[%d]: %d, %d", i, pins[i].x, pins[i].y));
+            _pins.push_back(pin);
         }
     } // End of fillPinsAsCircle()
 
-    void StringArtGenerator::drawPins(const cv::Mat &src, const std::vector<Point> &pins, const int radius) {
+    void StringArtGenerator::drawPins(const cv::Mat &src, const std::vector<Point> &pins,
+                                      const int radius, const Scalar color) {
         for (auto ptr = pins.begin(); ptr < pins.end(); ptr++) {
-            circle(src, *ptr, radius, (128), -1);
+            circle(src, *ptr, radius, color, -1);
         }
     }
 
     // TODO: Check LineIterator in OpenCV
-    void StringArtGenerator::precalculateLines(
-            int sizeOfPins, int minDistance,
-            std::vector<Point> &pins, std::vector<std::vector<Point>> &lines) {
+    std::vector<std::vector<Point>> StringArtGenerator::precalculateLines(
+            std::vector<Point> &pins) {
         int first, second, distance;
         double deltaX, deltaY;
         Point p0, p1;
         Point linePoint;
-        for (int i = 0; i < sizeOfPins; i++) {
-            for (int j = i + minDistance; j < sizeOfPins; j++) {
-                first = j * sizeOfPins + i;
-                second = i * sizeOfPins + j;
+        std::vector<std::vector<Point>> lines(pins.size() * pins.size());
+        for (int i = 0; i < _sizeOfPins; i++) {
+            for (int j = i + _minDistance; j < _sizeOfPins; j++) {
+                first = j * _sizeOfPins + i;
+                second = i * _sizeOfPins + j;
                 p0 = pins[i];
                 p1 = pins[j];
                 distance = (int) sqrt(
@@ -161,47 +176,42 @@ namespace fc {
                 //log(format("Line[%d][%d]: %d", first, second, lines[first].size()));
             }
         }
+        return lines;
     } // End of precalculateLines()
 
-    void StringArtGenerator::calculateLines(
-            cv::Mat &src, cv::Mat &dst,
-            const int sizeOfPins, const int minDistance,
-            const int maxLines, const int lineWeight,
-            std::vector<Point> &pins, std::vector<std::vector<Point>> &lines) {
-        int LINE_WEIGHT = lineWeight;
+    std::vector<int> StringArtGenerator::calculateLines(cv::Mat &src,
+                                                        std::vector<std::vector<Point>> &lines) {
 
-        std::vector<int> lineSequence;
-        std::vector<int> lastPins;
+        std::vector<int> lineSequence, lastPins;
         int currentPin = 0;
-        int bestPin = -1;
-        uint lineError = 0;
-        uint maxError = 0;
+        int bestPin;
+        uint lineError;
+        uint maxError;
         int index = 0;
-        int innerIndex = 0;
-        lineSequence.push_back(currentPin);
+        int innerIndex;
 
-        for (int i = 0; i < maxLines; i++) {
+        lineSequence.push_back(currentPin);
+        for (int i = 0; i < _maxLines; i++) {
             bestPin = -1;
             maxError = 0;
 
-            for (int offset = minDistance; offset < sizeOfPins - minDistance; offset++) {
-                int testPin = (currentPin + offset) % sizeOfPins;
+            for (int offset = _minDistance; offset < _sizeOfPins - _minDistance; offset++) {
+                int testPin = (currentPin + offset) % _sizeOfPins;
 
                 // Check if lastPins contains testPin
                 if (std::find(lastPins.begin(), lastPins.end(), testPin) != lastPins.end()) {
                     continue;
                 }
 
-                innerIndex = testPin * sizeOfPins + currentPin;
+                innerIndex = testPin * _sizeOfPins + currentPin;
 
                 // Calculate line error
                 lineError = 0;
-
                 uchar colorValue;
                 for (auto ptr = lines[innerIndex].begin(); ptr < lines[innerIndex].end(); ptr++) {
                     colorValue = src.at<uchar>(*ptr);
                     if (colorValue > 0) {
-                        lineError = lineError + (int)colorValue;
+                        lineError = lineError + (int) colorValue;
                     }
                 }
                 if (lineError > maxError) {
@@ -216,7 +226,7 @@ namespace fc {
             int lineSize = lines[index].size();
             for (int j = 0; j < lineSize; j++) {
                 src.at<uchar>(lines[index][j]) =
-                        max(0, src.at<uchar>(lines[index][j]) - LINE_WEIGHT);
+                        max(0, src.at<uchar>(lines[index][j]) - _lineWeight);
             }
 
             // Make sure that we have only 20 previous pins that not repeated
@@ -227,26 +237,36 @@ namespace fc {
             currentPin = bestPin;
         }
 
-        // Fill the image
-        Mat lineCanvas(dst.size(), CV_8UC1);
-        Mat src1(dst.size(), CV_8UC1);
+        return lineSequence;
+    }
+
+    cv::Mat StringArtGenerator::drawLines(Size size, const std::vector<Point> &pins,
+                                          std::vector<int> &lineSequence, int lineWeight) {
+        Mat lineCanvas(size, CV_8UC1);
+        Mat tmp(size, CV_8UC1);
         lineCanvas.setTo(0);
         for (int i = 1; i < lineSequence.size(); i++) {
-            if (lineSequence[i] == -1) {
-                log(format("Stop at %d line of %d", i, maxLines));
-                break;
-            }
-            src1.setTo(0);
-            line(src1, pins[lineSequence[i - 1]], pins[lineSequence[i]], lineWeight, 1);
-            add(lineCanvas, src1, lineCanvas);
+            if (lineSequence[i] == -1) break;
+            tmp.setTo(0);
+            line(tmp, pins[lineSequence[i - 1]], pins[lineSequence[i]], lineWeight, 1);
+            add(lineCanvas, tmp, lineCanvas);
 
         }
-        src1.release();
+        tmp.release();
         bitwise_not(lineCanvas, lineCanvas);
-        lineCanvas.copyTo(dst);
-        lineCanvas.release();
+        return lineCanvas;
+    }
 
+    void StringArtGenerator::release() {
+        std::destroy(_pins.begin(), _pins.end());
+        for(auto ptr=_preLines.begin(); ptr < _preLines.end(); ptr++) {
+            ptr->clear();
+            std::destroy(ptr->begin(), ptr->end());
+        }
+        _preLines.clear();
+        std::destroy(_preLines.begin(), _preLines.end());
 
+        _progressCallback = nullptr;
     }
 
 //    void parallelWork(int numberOfNails) {

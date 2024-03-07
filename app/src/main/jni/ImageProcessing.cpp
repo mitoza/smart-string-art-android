@@ -43,7 +43,14 @@ Java_com_flycatcher_smartstring_JniBridge_greyImage
         WListener = env->NewWeakGlobalRef(callback);
         gen.addCallback(sendProgress);
     }
-    gen.generateCircle(src, sizeOfPins, minDistance, maxLines, lineWeight).copyTo(result);
+
+    gen.setSizeOfPins(sizeOfPins);
+    gen.setMinDistance(minDistance);
+    gen.setMaxLines(maxLines);
+    gen.setLineWeight(lineWeight);
+
+    gen.generateCircle(src).copyTo(result);
+    gen.release();
 
     // Release resources
     if (nullptr != pPixelsIn) {
@@ -70,6 +77,8 @@ void sendProgress(int progress) {
     jclass clazz = env->GetObjectClass(WListener);
     jmethodID store_method = env->GetMethodID(clazz, "sendProgress", "(I)V");
     env->CallVoidMethod(WListener, store_method, progress);
+
+    //return true;
 };
 
 extern "C"
