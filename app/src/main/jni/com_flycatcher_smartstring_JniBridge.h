@@ -24,8 +24,8 @@ JNIEXPORT jstring JNICALL Java_com_flycatcher_smartstring_JniBridge_showText
  * Class:     Java_com_flycatcher_smartstring_JniBridge
  * Method:    greyImage
  */
-JNIEXPORT void JNICALL Java_com_flycatcher_smartstring_JniBridge_greyImage
-        (JNIEnv *, jobject, jint, jint,
+JNIEXPORT void JNICALL Java_com_flycatcher_smartstring_JniBridge_stringArtImage
+        (JNIEnv *, jobject, jint, jint, jint, jint,
          jint, jint, jint, jint,
          jintArray, jintArray, jobject);
 
@@ -37,7 +37,7 @@ JNIEXPORT void JNICALL Java_com_flycatcher_smartstring_JniBridge_callbackJNI
         (JNIEnv *, jobject, jobject);
 
 
-void sendProgress(int progress);
+bool sendProgress(int progress);
 
 #ifdef __cplusplus
 }

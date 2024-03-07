@@ -21,11 +21,13 @@ using namespace cv;
 
 namespace fc {
 
-    using ProgressCallback = void (*)(int progress);
+    using ProgressCallback = bool (*)(int progress);
 
     class StringArtGenerator {
         
     private:
+        int _width = 500;
+        int _height = 500;
         int _sizeOfPins = 288;
         int _minDistance = 20;
         int _maxLines = 2000;
@@ -33,13 +35,15 @@ namespace fc {
 
         std::vector<Point> _pins;
         std::vector<std::vector<Point>> _preLines;
+        std::vector<int> _lineSequence;
 
         ProgressCallback _progressCallback = nullptr;
 
     public:
         StringArtGenerator();
         ~StringArtGenerator();
-        
+
+        void setSize(int width, int height) { _width = width; _height = height; };
         void setSizeOfPins(int sizeOfPins) { _sizeOfPins = sizeOfPins; };
         void setMinDistance(int minDistance) { _minDistance = minDistance; };
         void setMaxLines(int maxLines) { _maxLines = maxLines; };
@@ -48,6 +52,7 @@ namespace fc {
         Mat generateCircle(const Mat src);
 
         void addCallback(ProgressCallback fptr) { _progressCallback = fptr; };
+        void removeCallback() { _progressCallback = nullptr; };
 
         void release();
 
@@ -57,24 +62,26 @@ namespace fc {
 
         void sobelFilter(const Mat &src_gray, Mat &dst);
 
-        void circleCrop(const Mat &src, Mat &dst);
+        void resizeAndCrop(const Mat &src, Mat &dst);
 
-        void fillPinsAsCircle(const Mat &src);
+        void cropCircle(const Mat &src, Mat &dst);
 
-        Mat drawLines(Size size, const std::vector<Point> &pins, std::vector<int> &lineSequence,
-                          int lineWeight = 20);
+        std::vector<Point> fillPinsAsCircle(const Mat &src);
+
+        std::vector<std::vector<Point>> precalculateLines(std::vector<Point> &pins);
+
+        std::vector<int> calculateLines(Mat &src, std::vector<std::vector<Point>> &lines);
+
+
+        Mat draw(Size matSize, const std::vector<Point> &pins, std::vector<int> &lineSequence,
+                 int lineWeight = 20);
 
         void drawPins(const Mat &src, const std::vector<Point> &pins, const int radius = 1, const Scalar color = 128);
 
-        // Bresenham Path or LineIterator
-        std::vector<std::vector<Point>> precalculateLines(std::vector<Point> &pins);
 
-        std::vector<int> calculateLines(Mat &src,
-                            std::vector<std::vector<Point>> &lines);
-
-        void progress(int progress) {
-            if (nullptr == _progressCallback) return;
-            _progressCallback(progress);
+        bool progress(int progress) {
+            if (nullptr == _progressCallback) return true;
+            return _progressCallback(progress);
         }
 
     private: // Android methods

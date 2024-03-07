@@ -1,23 +1,16 @@
 package com.flycatcher.smartstring
 
 import android.graphics.Bitmap
-import android.os.FileUtils.ProgressListener
 import android.util.Log
-import androidx.annotation.MainThread
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class MainActivityViewModel(
     private val savedStateHandle: SavedStateHandle
@@ -55,7 +48,7 @@ class MainActivityViewModel(
         generatorJob = viewModelScope.launch(CoroutineName("BitmapGeneration")) {
             val progress = StringArtProgressImpl()
             val bitmapDeferred = async {
-                jniBridge.greyImage(bitmap, pins, minDistance, maxLines, lineWeight, progress)
+                jniBridge.stringArtImage(bitmap, 500, 500, pins, minDistance, maxLines, lineWeight, progress)
             }
             bitmapFlow.value = bitmapDeferred.await()
         }

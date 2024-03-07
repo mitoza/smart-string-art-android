@@ -12,25 +12,26 @@ class JniBridge() {
 
     external fun callbackJNI(listener: JNIListener)
 
-    private external fun greyImage(
-        width: Int, height: Int,
+    private external fun stringArtImage(
+        width: Int, height: Int, nw: Int, nh: Int,
         pins: Int, minDistance: Int, maxLines: Int,
         lineWeight: Int,
         pixelsIn: IntArray, pixelsOut: IntArray, listener: StringArtProgress
     )
 
-    suspend fun greyImage(
-        bitmap: Bitmap, pins: Int, minDistance: Int, maxLines: Int, lineWeight: Int, callback: StringArtProgress
+    suspend fun stringArtImage(
+        bitmap: Bitmap, width: Int, height: Int, pins: Int, minDistance: Int, maxLines: Int, lineWeight: Int, callback: StringArtProgress
     ): Bitmap = withContext(Dispatchers.IO) {
-        val outPixels = IntArray(bitmap.width * bitmap.height)
-        greyImage(
-            bitmap.width, bitmap.height,
+        val outPixels = IntArray(width * height)
+        stringArtImage(
+            bitmap.width, bitmap.height, width, height,
             pins, minDistance, maxLines, lineWeight,
             bitmap.toIntArray(), outPixels, callback
         )
-        val newBitmap =
-            Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
-        newBitmap.setPixels(outPixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+
+        val newBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        newBitmap.setPixels(outPixels, 0, width, 0, 0, width, height)
+
         newBitmap
     }
 

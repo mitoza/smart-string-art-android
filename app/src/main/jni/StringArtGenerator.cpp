@@ -29,68 +29,77 @@ namespace fc {
         /* Find the lines */
 
         // Set pins
-        fillPinsAsCircle(bsrc);
+        if (_pins.empty()) {
+            _pins = fillPinsAsCircle(bsrc);
+        }
         progress(4);
 
         // Precalculate all potential Lines
         long linesTime = currentTimeInNanos();
-
-        _preLines = precalculateLines(_pins);
+        if (_preLines.empty()) {
+            _preLines = precalculateLines(_pins);
+        }
         log(format("Pre-lines time: %ldns", (currentTimeInNanos() - linesTime)));
         progress(5);
 
         // In Loop search the best line with most darkest color from one pin to other
-        std::vector<int> lineSequence = calculateLines(bsrc, _preLines);
-        progress(99);
+        _lineSequence.clear();
+        _lineSequence = calculateLines(bsrc, _preLines);
+        if (!progress(99)) {
+            log(format("Progress dead"));
+        }
 
         // Draw lines
-        Mat dst = drawLines(bsrc.size(), _pins, lineSequence, _lineWeight);
+        Mat dst = draw(bsrc.size(), _pins, _lineSequence, _lineWeight);
 
         // Draw pins
         drawPins(dst, _pins);
         progress(100);
 
-
         /* Result */
         Mat result;
         cvtColor(dst, result, COLOR_GRAY2RGBA);
+//        cvtColor(bsrc, result, COLOR_GRAY2RGBA);
+
 
         // Release resources
-        std::destroy(lineSequence.begin(), lineSequence.end());
         dst.release();
         bsrc.release();
 
-        //line(result, Point(0,0), Point(src.cols, src.rows/2), (255,0,0), 1);
         return result;
-    }
+    } // End of generateCircle()
 
     Mat StringArtGenerator::prepareImage(const Mat &src) {
 
         // Make image gray
         GaussianBlur(src, src, Size(3, 3), 0, 0, BORDER_DEFAULT);
-        Mat dst(src.size(), CV_8UC1);
-        cvtColor(src, dst, COLOR_RGB2GRAY);
 
-        //extractChannel(src, bsrc, 0);
+        // Resize
+        Mat resize;
+        resizeAndCrop(src, resize);
 
-        // Sobel Filter
-        //sobelFilter(bsrc, bsrc);
+        // Make Grey IMAGE
+        Mat dst(resize.size(), CV_8UC1);
+        cvtColor(resize, dst, COLOR_RGB2GRAY); // Average method
+        //extractChannel(src, dst, 0); // Extract RED channel
+        resize.release();
 
-        // Inverted image
+        // Invert image
         int kernelSize = 9;
         GaussianBlur(dst, dst, cv::Size(kernelSize, kernelSize), 0.0);
         //adaptiveThreshold(bsrc, bsrc, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, kernelSize, 10);
-        //sobelFilter(bsrc, bsrc);
-        bitwise_not(dst, dst);
+        //sobelFilter(dst, dst); // Sobel invert
+        bitwise_not(dst, dst); // Bitwise invert
 
+        // Remove noise
         //int kernelSize2 = 9;
         //GaussianBlur(bsrc, bsrc, cv::Size(kernelSize2, kernelSize2), 0.0);
 
         // Circle crop
-        circleCrop(dst, dst);
+        cropCircle(dst, dst);
 
         return dst;
-    }
+    } // End of prepareImage()
 
     void StringArtGenerator::sobelFilter(const Mat &src_gray, Mat &dst) {
         int kernelSize = 3; // 1, 3, 5, 7
@@ -109,39 +118,49 @@ namespace fc {
         grad_y.release();
         abs_grad_x.release();
         abs_grad_y.release();
+    } // End of sobelFilter()
+
+    void StringArtGenerator::resizeAndCrop(const cv::Mat &src, cv::Mat &dst) {
+        cv::Mat output;
+        double h1 = _width * (src.rows/(double)src.cols);
+        double w2 = _height * (src.cols/(double)src.rows);
+        if( h1 <= _height) {
+            resize(src, output, cv::Size(_width, h1));
+        } else {
+            resize(src, output, cv::Size(w2, _height));
+        }
+        int top = (_height-output.rows) / 2;
+        int down = (_height-output.rows+1) / 2;
+        int left = (_width - output.cols) / 2;
+        int right = (_width - output.cols+1) / 2;
+        cv::copyMakeBorder(output, dst, top, down, left, right, BORDER_CONSTANT, 0 );
+        output.release();
     }
 
-    void StringArtGenerator::circleCrop(const Mat &src, Mat &dst) {
+    void StringArtGenerator::cropCircle(const Mat &src, Mat &dst) {
         Mat circleMask = Mat(src.size(), CV_8UC1, 255);
         circle(circleMask, Point(src.cols / 2, src.rows / 2), src.cols / 2, 0, -1);
-        Mat circleImage;
         subtract(src, circleMask, dst);
-        circleImage.release();
-    }
+        circleMask.release();
+    } // End of cropCircle()
 
-    void StringArtGenerator::fillPinsAsCircle(const Mat &src) {
+    std::vector<Point> StringArtGenerator::fillPinsAsCircle(const Mat &src) {
         int center = min(src.rows, src.cols) / 2;
         int radius = center - 1;
         double angle;
-        _pins.clear();
+        std::vector<Point> pins;
         for (int i = 0; i < _sizeOfPins; i++) {
             angle = 2 * CV_PI * i / _sizeOfPins;
             Point pin = Point((int) (src.cols / 2 + radius * cos(angle)),
                               (int) (src.rows / 2 + radius * sin(angle)));
-            _pins.push_back(pin);
+            pins.push_back(pin);
         }
+        return pins;
     } // End of fillPinsAsCircle()
 
-    void StringArtGenerator::drawPins(const cv::Mat &src, const std::vector<Point> &pins,
-                                      const int radius, const Scalar color) {
-        for (auto ptr = pins.begin(); ptr < pins.end(); ptr++) {
-            circle(src, *ptr, radius, color, -1);
-        }
-    }
-
-    // TODO: Check LineIterator in OpenCV
-    std::vector<std::vector<Point>> StringArtGenerator::precalculateLines(
-            std::vector<Point> &pins) {
+    // TODO: Implement LineIterator from OpenCV
+    std::vector<std::vector<Point>>
+    StringArtGenerator::precalculateLines(std::vector<Point> &pins) {
         int first, second, distance;
         double deltaX, deltaY;
         Point p0, p1;
@@ -153,6 +172,7 @@ namespace fc {
                 second = i * _sizeOfPins + j;
                 p0 = pins[i];
                 p1 = pins[j];
+                // Calculate Bresenham Path or LineIterator(OpenCV)
                 distance = (int) sqrt(
                         (p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
                 // Fill line with pixels coordinates
@@ -173,7 +193,6 @@ namespace fc {
                     lines[second].push_back(p1);
                 }
 
-                //log(format("Line[%d][%d]: %d", first, second, lines[first].size()));
             }
         }
         return lines;
@@ -238,36 +257,48 @@ namespace fc {
         }
 
         return lineSequence;
-    }
+    } // End of calculateLines()
 
-    cv::Mat StringArtGenerator::drawLines(Size size, const std::vector<Point> &pins,
-                                          std::vector<int> &lineSequence, int lineWeight) {
-        Mat lineCanvas(size, CV_8UC1);
-        Mat tmp(size, CV_8UC1);
+    cv::Mat StringArtGenerator::draw(Size matSize, const std::vector<Point> &pins,
+                                     std::vector<int> &lineSequence, int lineWeight) {
+        Mat lineCanvas(matSize, CV_8UC1);
+        Mat tmp(matSize, CV_8UC1);
         lineCanvas.setTo(0);
         for (int i = 1; i < lineSequence.size(); i++) {
             if (lineSequence[i] == -1) break;
             tmp.setTo(0);
             line(tmp, pins[lineSequence[i - 1]], pins[lineSequence[i]], lineWeight, 1);
             add(lineCanvas, tmp, lineCanvas);
-
         }
         tmp.release();
         bitwise_not(lineCanvas, lineCanvas);
         return lineCanvas;
-    }
+    } // End of draw()
+
+    void StringArtGenerator::drawPins(const cv::Mat &src, const std::vector<Point> &pins,
+                                      const int radius, const Scalar color) {
+        for (auto ptr = pins.begin(); ptr < pins.end(); ptr++) {
+            circle(src, *ptr, radius, color, -1);
+        }
+    } // End of drawPins()
 
     void StringArtGenerator::release() {
+        // Destroy Pins
+        _pins.clear();
         std::destroy(_pins.begin(), _pins.end());
-        for(auto ptr=_preLines.begin(); ptr < _preLines.end(); ptr++) {
+
+        // Destroy PreLines
+        for (auto ptr = _preLines.begin(); ptr < _preLines.end(); ptr++) {
             ptr->clear();
             std::destroy(ptr->begin(), ptr->end());
         }
         _preLines.clear();
         std::destroy(_preLines.begin(), _preLines.end());
 
-        _progressCallback = nullptr;
-    }
+        // Destroy Line Sequence
+        _lineSequence.clear();
+        std::destroy(_lineSequence.begin(), _lineSequence.end());
+    } // End of release();
 
 //    void parallelWork(int numberOfNails) {
 //        parallel_for_(Range(0, numberOfNails), [&](const Range& range) {

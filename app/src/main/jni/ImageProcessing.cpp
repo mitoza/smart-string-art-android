@@ -15,6 +15,7 @@ using namespace fc;
 
 JavaVM *jvm = nullptr;
 jweak WListener = nullptr;
+StringArtGenerator gen;
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_flycatcher_smartstring_JniBridge_showText
@@ -22,9 +23,10 @@ Java_com_flycatcher_smartstring_JniBridge_showText
     return text;
 }
 
+
 extern "C" JNIEXPORT void JNICALL
-Java_com_flycatcher_smartstring_JniBridge_greyImage
-        (JNIEnv *env, jobject thiz, jint width, jint height,
+Java_com_flycatcher_smartstring_JniBridge_stringArtImage
+        (JNIEnv *env, jobject thiz, jint width, jint height, jint nw, jint nh,
          jint sizeOfPins, jint minDistance, jint maxLines,
          jint lineWeight,
          jintArray pixelsIn, jintArray pixelsOut, jobject callback) {
@@ -34,23 +36,25 @@ Java_com_flycatcher_smartstring_JniBridge_greyImage
 
     // Output grey
     jint *pOutPixels = env->GetIntArrayElements(pixelsOut, 0);
-    Mat result(height, width, CV_8UC4, (unsigned char *) pOutPixels);
+    Mat result(nh, nw, CV_8UC4, (unsigned char *) pOutPixels);
 
     // Filter
-    StringArtGenerator gen = StringArtGenerator();
+    //gen = StringArtGenerator();
     env->GetJavaVM(&jvm);
     if (nullptr != callback && nullptr != jvm) {
         WListener = env->NewWeakGlobalRef(callback);
         gen.addCallback(sendProgress);
     }
 
+    gen.setSize(nw, nh);
     gen.setSizeOfPins(sizeOfPins);
     gen.setMinDistance(minDistance);
     gen.setMaxLines(maxLines);
     gen.setLineWeight(lineWeight);
 
     gen.generateCircle(src).copyTo(result);
-    gen.release();
+    //gen.removeCallback();
+    //gen.release();
 
     // Release resources
     if (nullptr != pPixelsIn) {
@@ -67,28 +71,28 @@ Java_com_flycatcher_smartstring_JniBridge_greyImage
     }
 }
 
-void sendProgress(int progress) {
-    if (nullptr == jvm) return;
+bool sendProgress(int progress) {
+    if (nullptr == jvm) return false;
     // Get JNIEnv from JavaVM
     JNIEnv *env;
     int getEnvStat = jvm->GetEnv((void **)&env, JNI_VERSION_1_6);
-    if (JNI_OK != getEnvStat || nullptr == WListener) return;
+    if (JNI_OK != getEnvStat || nullptr == WListener) return false;
 
     jclass clazz = env->GetObjectClass(WListener);
     jmethodID store_method = env->GetMethodID(clazz, "sendProgress", "(I)V");
     env->CallVoidMethod(WListener, store_method, progress);
 
-    //return true;
-};
+    return true;
+}
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_flycatcher_smartstring_JniBridge_callbackJNI
         (JNIEnv *env, jobject thiz, jobject listener) {
     // Check JVM 
-    JavaVM *jvm = nullptr;
-    env->GetJavaVM(&jvm);
-    if (nullptr == jvm) return;
+    JavaVM *_jvm = nullptr;
+    env->GetJavaVM(&_jvm);
+    if (nullptr == _jvm) return;
 
     jweak store_Wlistener = env->NewWeakGlobalRef(listener);
     jclass clazz = env->GetObjectClass(store_Wlistener);
