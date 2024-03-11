@@ -35,19 +35,15 @@ namespace fc {
         progress(4);
 
         // Precalculate all potential Lines
-        long linesTime = currentTimeInNanos();
         if (_preLines.empty()) {
             _preLines = precalculateLines(_pins);
         }
-        log(format("Pre-lines time: %ldns", (currentTimeInNanos() - linesTime)));
         progress(5);
 
         // In Loop search the best line with most darkest color from one pin to other
         _lineSequence.clear();
         _lineSequence = calculateLines(bsrc, _preLines);
-        if (!progress(99)) {
-            log(format("Progress dead"));
-        }
+        progress(95);
 
         // Draw lines
         Mat dst = draw(bsrc.size(), _pins, _lineSequence, _lineWeight);
@@ -208,11 +204,16 @@ namespace fc {
         uint maxError;
         int index = 0;
         int innerIndex;
-
+        int currentProgress = 10;
+        progress(currentProgress);
         lineSequence.push_back(currentPin);
         for (int i = 0; i < _maxLines; i++) {
             bestPin = -1;
             maxError = 0;
+            if ((i * 80 / _maxLines + 10) % 5 == 0 && (i * 80 / _maxLines + 10) > currentProgress) {
+                currentProgress = i * 80 / _maxLines + 10;
+                progress(currentProgress);
+            }
 
             for (int offset = _minDistance; offset < _sizeOfPins - _minDistance; offset++) {
                 int testPin = (currentPin + offset) % _sizeOfPins;

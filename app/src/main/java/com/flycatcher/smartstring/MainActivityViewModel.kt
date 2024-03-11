@@ -6,10 +6,14 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 class MainActivityViewModel(
@@ -24,6 +28,9 @@ class MainActivityViewModel(
 
     private var _bitmapFlow = MutableStateFlow<Bitmap?>(null)
     val bitmapFlow = _bitmapFlow
+
+    private var _progress = MutableStateFlow(0)
+    val progress = _progress
 
     private var generatorJob: Job? = null
 
@@ -42,16 +49,24 @@ class MainActivityViewModel(
         savedStateHandle[PICTURE_KEY] = currentPicture.value.next()
     }
 
-    fun generatePicture(bitmap: Bitmap, pins: Int, minDistance: Int, maxLines: Int,
-                        lineWeight: Int) {
+    fun generatePicture(
+        bitmap: Bitmap, pins: Int, minDistance: Int, maxLines: Int,
+        lineWeight: Int
+    ) {
+
         generatorJob?.cancel()
         generatorJob = viewModelScope.launch(CoroutineName("BitmapGeneration")) {
-            val progress = StringArtProgressImpl()
-            val bitmapDeferred = async {
-                jniBridge.stringArtImage(bitmap, 500, 500, pins, minDistance, maxLines, lineWeight, progress)
-            }
-            bitmapFlow.value = bitmapDeferred.await()
+            _bitmapFlow.value = jniBridge.stringArtImage(
+                bitmap, 500, 500,
+                pins, minDistance, maxLines, lineWeight,
+                object : JniBridge.StringArtProgress {
+                    override fun sendProgress(progress: Int) {
+                        _progress.value = progress
+                    }
+                }
+            )
         }
+
     }
 
     fun checkProgress() {
@@ -59,19 +74,11 @@ class MainActivityViewModel(
             override fun sendProgress(progress: Int, msg: String) {
                 Log.d("JniCallback", "Message $msg is $progress%")
             }
-
         })
     }
 
     companion object {
         val PICTURE_KEY = "picture_key"
-    }
-
-    class StringArtProgressImpl: JniBridge.StringArtProgress {
-        override fun sendProgress(progress: Int) {
-            Log.d("JNI", "Progress: $progress")
-        }
-
     }
 
 }

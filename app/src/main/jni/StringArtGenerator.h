@@ -84,22 +84,6 @@ namespace fc {
             return _progressCallback(progress);
         }
 
-    private: // Android methods
-
-        void log(String msg) {
-            log(msg.c_str());
-        };
-
-        void log(const char *fmt...) {
-            __android_log_print(ANDROID_LOG_VERBOSE, APP_NAME, "%s", fmt);
-        };
-
-        long currentTimeInNanos() {
-            struct timespec res;
-            clock_gettime(CLOCK_MONOTONIC, &res);
-            return (res.tv_sec * 1000000000) + res.tv_nsec;
-        }
-
     };
 
 }

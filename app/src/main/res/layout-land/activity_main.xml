@@ -40,6 +40,18 @@
         app:layout_constraintStart_toStartOf="@+id/main_preview"
         app:layout_constraintEnd_toEndOf="@+id/main_preview"/>
 
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/main_progress_value"
+        style="@style/TextView.Title"
+        android:textColor="@color/white"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="99%"
+        app:layout_constraintTop_toTopOf="@+id/main_progress"
+        app:layout_constraintBottom_toBottomOf="@+id/main_progress"
+        app:layout_constraintStart_toStartOf="@+id/main_progress"
+        app:layout_constraintEnd_toEndOf="@+id/main_progress"
+        />
 
     <include
         android:id="@+id/c_gen"

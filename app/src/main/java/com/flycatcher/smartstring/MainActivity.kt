@@ -9,8 +9,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.flycatcher.smartstringart.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collect
 import java.io.IOException
 import java.io.InputStream
 
@@ -25,14 +23,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         lifecycleScope.launch {
-            viewModel.bitmapFlow.collect { bitmap ->
-                updateBitmap(bitmap)
-            }
+            viewModel.bitmapFlow.collect (this@MainActivity::updateBitmap)
         }
         lifecycleScope.launch {
-            viewModel.currentPicture.collect { picture ->
-                updatePictureInfo(picture)
-            }
+            viewModel.currentPicture.collect (this@MainActivity::updatePictureInfo)
+        }
+        lifecycleScope.launch {
+            viewModel.progress.collect (this@MainActivity::updateProgress)
         }
 
         binding.cImage.btnPrevPicture.setOnClickListener(this::onPrevPictureClick)
@@ -67,7 +64,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateBitmap(bitmap: Bitmap?) {
         binding.mainPreview.setImageBitmap(bitmap)
-        binding.mainProgress.visibility = View.GONE
+        updateProgressVisibility(false)
+    }
+
+    private fun updateProgressVisibility(visible: Boolean) {
+        binding.mainProgress.visibility = if (visible) View.VISIBLE else View.GONE
+        binding.mainProgressValue.visibility = if (visible) View.VISIBLE else View.GONE
+        binding.mainProgressValue.text = "0%"
+    }
+
+    private fun updateProgress(progress: Int) {
+        binding.mainProgressValue.text = "$progress%"
     }
 
     private fun onPrevPictureClick(v: View) {
@@ -86,6 +93,7 @@ class MainActivity : AppCompatActivity() {
         val lineWeight = binding.cGen.snvMinDistance.getProgress()
         viewModel.generatePicture(bitmap, pins, minDistance, maxLines, lineWeight)
         binding.mainProgress.visibility = View.VISIBLE
+        updateProgressVisibility(true)
     }
 
 }
